@@ -56,6 +56,7 @@ func _t(chave: String) -> String:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_node("/root/Tela").ajustar(self)
 	_toque = DisplayServer.is_touchscreen_available()
 	DirAccess.make_dir_recursive_absolute(PASTA_IMPORTAR)
 	_seletor = Seletor.new()
@@ -123,20 +124,20 @@ func _unhandled_input(ev: InputEvent) -> void:
 		var t := ev as InputEventScreenTouch
 		if t != null:
 			if t.pressed:
-				_comecar(t.position)
+				_comecar(get_node("/root/Tela").local(t.position))
 			else:
-				_terminar(t.position)
+				_terminar(get_node("/root/Tela").local(t.position))
 			return
 		var d := ev as InputEventScreenDrag
 		if d != null:
-			_arrastar(d.position)
+			_arrastar(get_node("/root/Tela").local(d.position))
 		return
 	var mb := ev as InputEventMouseButton
 	if mb != null and mb.button_index == MOUSE_BUTTON_LEFT:
 		if mb.pressed:
-			_comecar(mb.position)
+			_comecar(get_node("/root/Tela").local(mb.position))
 		else:
-			_terminar(mb.position)
+			_terminar(get_node("/root/Tela").local(mb.position))
 		return
 	var mm := ev as InputEventMouseMotion
 	if mm != null and _baixo:
@@ -236,7 +237,7 @@ func _apagar(i: int) -> void:
 
 func _draw() -> void:
 	var fonte: Font = ThemeDB.fallback_font
-	draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color(0.07, 0.06, 0.12), true)
+	draw_rect(_area(), Color(0.07, 0.06, 0.12), true)
 	for i in range(_itens.size()):
 		var r: Rect2 = _rect_linha(i)
 		if r.end.y < TOPO - 10.0 or r.position.y > VIEW_H:
@@ -263,7 +264,7 @@ func _draw() -> void:
 	if _itens.is_empty():
 		draw_string(fonte, Vector2(0.0, 270.0), _t("exp_vazio"), HORIZONTAL_ALIGNMENT_CENTER, VIEW_W, 24, Color(0.7, 0.68, 0.85))
 	# cabeçalho por cima da lista
-	draw_rect(Rect2(0.0, 0.0, VIEW_W, TOPO - 10.0), Color(0.07, 0.06, 0.12), true)
+	draw_rect(Rect2(_area().position.x, 0.0, _area().size.x, TOPO - 10.0), Color(0.07, 0.06, 0.12), true)
 	draw_rect(R_VOLTAR, Color(0.16, 0.14, 0.26), true)
 	draw_rect(R_VOLTAR, Color(0.45, 0.38, 0.75), false, 2.0)
 	draw_string(fonte, Vector2(R_VOLTAR.position.x, R_VOLTAR.position.y + 30.0), "< " + _t("voltar"), HORIZONTAL_ALIGNMENT_CENTER, R_VOLTAR.size.x, 20, Color.WHITE)
@@ -275,3 +276,8 @@ func _draw() -> void:
 		draw_rect(rm, Color(0.1, 0.08, 0.2, 0.95), true)
 		draw_rect(rm, Color(1.0, 0.6, 0.2), false, 2.0)
 		draw_string(fonte, Vector2(rm.position.x, rm.position.y + 27.0), _msg, HORIZONTAL_ALIGNMENT_CENTER, rm.size.x, 17, Color.WHITE)
+
+
+# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
+func _area() -> Rect2:
+	return get_node("/root/Tela").area()

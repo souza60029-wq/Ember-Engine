@@ -19,6 +19,14 @@ const PASTA_MUSICA_USUARIO := "user://musica/"
 const CANAIS := 8
 const FADE_MUSICA := 0.5
 const VOLUME_MUDO := -60.0
+# Normalizador de som: música e efeitos passam por um compressor (segura os picos e levanta os trechos
+# baixos) e um limitador (nada passa de -1 dB). Pode ser desligado em Configurações > Áudio.
+const BUS_MUSICA := "EmberMusica"
+const BUS_EFEITOS := "EmberEfeitos"
+const NORM_LIMIAR_DB := -18.0
+const NORM_RAZAO := 4.0
+const NORM_GANHO_DB := 5.0
+const NORM_TETO_DB := -1.0
 
 var _canais: Array[AudioStreamPlayer] = []
 var _musicas: Array[AudioStreamPlayer] = []
@@ -33,17 +41,61 @@ var _grupo_atual: String = ""
 
 
 func _ready() -> void:
+	_criar_barramentos()
 	for i in CANAIS:
 		var p := AudioStreamPlayer.new()
+		p.bus = BUS_EFEITOS
 		add_child(p)
 		_canais.append(p)
 	for i in 2:
 		var m := AudioStreamPlayer.new()
+		m.bus = BUS_MUSICA
 		m.volume_db = VOLUME_MUDO
 		m.finished.connect(_ao_terminar.bind(m))
 		add_child(m)
 		_musicas.append(m)
 	get_node("/root/Config").audio_mudou.connect(_reavaliar)
+	_aplicar_normalizador()
+
+
+# Cria os barramentos de música e de efeitos (cada um com compressor + limitador) e um limitador
+# final no Master. Todos os players do Audio tocam nesses barramentos.
+func _criar_barramentos() -> void:
+	for nome in [BUS_MUSICA, BUS_EFEITOS]:
+		if AudioServer.get_bus_index(nome) != -1:
+			continue
+		AudioServer.add_bus()
+		var i: int = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(i, nome)
+		AudioServer.set_bus_send(i, "Master")
+		var comp := AudioEffectCompressor.new()
+		comp.threshold = NORM_LIMIAR_DB
+		comp.ratio = NORM_RAZAO
+		comp.gain = NORM_GANHO_DB
+		comp.attack_us = 200.0
+		comp.release_ms = 250.0
+		AudioServer.add_bus_effect(i, comp)
+		AudioServer.add_bus_effect(i, _novo_limitador())
+	if AudioServer.get_bus_effect_count(0) == 0:
+		AudioServer.add_bus_effect(0, _novo_limitador())
+
+
+func _novo_limitador() -> AudioEffectLimiter:
+	var lim := AudioEffectLimiter.new()
+	lim.ceiling_db = NORM_TETO_DB
+	lim.threshold_db = -3.0
+	return lim
+
+
+# Liga ou desliga todos os efeitos do normalizador conforme a opção de Configurações.
+func _aplicar_normalizador() -> void:
+	var ligado: bool = bool(get_node("/root/Config").normalizador_som)
+	for nome in [BUS_MUSICA, BUS_EFEITOS, "Master"]:
+		var i: int = AudioServer.get_bus_index(nome)
+		if i == -1:
+			continue
+		for e in AudioServer.get_bus_effect_count(i):
+			AudioServer.set_bus_effect_enabled(i, e, ligado)
 
 
 # Devolve o caminho do arquivo que deve tocar, ou "" se não existir nenhum.
@@ -92,6 +144,7 @@ func _permitido(grupo: String) -> bool:
 
 
 func _reavaliar() -> void:
+	_aplicar_normalizador()
 	var cfg: Node = get_node("/root/Config")
 	var ligado: bool = bool(cfg.musica_luta_ligada) if _grupo_atual == "luta" else bool(cfg.musica_menu_ligada)
 	if not ligado:

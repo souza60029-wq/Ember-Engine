@@ -67,6 +67,7 @@ func _init() -> void:
 	p2.oponente = p1
 
 func _ready() -> void:
+	get_node("/root/Tela").ajustar(self)
 	_carregar_lutadores()
 	_tocar_tema()
 	_reiniciar_luta()
@@ -431,15 +432,16 @@ func _unhandled_input(ev: InputEvent) -> void:
 	var sd := ev as InputEventScreenDrag
 	if st != null:
 		if st.pressed:
-			var alvo := _alvo_toque(st.position)
-			toques[st.index] = {"alvo": alvo, "pos": st.position}
+			var p_st: Vector2 = get_node("/root/Tela").local(st.position)
+			var alvo := _alvo_toque(p_st)
+			toques[st.index] = {"alvo": alvo, "pos": p_st}
 			if alvo == "RESET":
 				_reiniciar_luta()
 		else:
 			toques.erase(st.index)
 	elif sd != null:
 		if toques.has(sd.index):
-			toques[sd.index]["pos"] = sd.position
+			toques[sd.index]["pos"] = get_node("/root/Tela").local(sd.position)
 
 # Com controle conectado os botões de luta na tela somem (e deixam de receber toque).
 func _modo_controle() -> bool:
@@ -665,9 +667,9 @@ func _botao(r: Rect2, s: String, ativo: bool = false) -> void:
 	_texto_c(r, s, 13)
 
 func _desenhar_luta() -> void:
-	draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color(0.09, 0.09, 0.12))
-	draw_rect(Rect2(0.0, Personagem.CHAO_Y, VIEW_W, VIEW_H - Personagem.CHAO_Y), Color(0.18, 0.16, 0.2))
-	draw_line(Vector2(0.0, Personagem.CHAO_Y), Vector2(VIEW_W, Personagem.CHAO_Y), Color(0.5, 0.5, 0.6), 2.0)
+	draw_rect(_area(), Color(0.09, 0.09, 0.12))
+	draw_rect(Rect2(_area().position.x, Personagem.CHAO_Y, _area().size.x, _area().end.y - Personagem.CHAO_Y), Color(0.18, 0.16, 0.2))
+	draw_line(Vector2(_area().position.x, Personagem.CHAO_Y), Vector2(_area().end.x, Personagem.CHAO_Y), Color(0.5, 0.5, 0.6), 2.0)
 	_desenhar_rastros()
 	_desenhar_personagem(p1, Color(0.3, 0.6, 1.0), dados1, pasta1)
 	_desenhar_personagem(p2, Color(1.0, 0.45, 0.2), dados2, pasta2)
@@ -903,3 +905,8 @@ func _desenhar_controles() -> void:
 		var c: Vector2 = BOTOES[k]
 		draw_circle(c, BOTAO_R, Color(1.0, 1.0, 1.0, 0.35 if tocado.has(k) else 0.12))
 		draw_string(ThemeDB.fallback_font, c + Vector2(-BOTAO_R, 5.0), str(k), HORIZONTAL_ALIGNMENT_CENTER, BOTAO_R * 2.0, 14, Color(1.0, 1.0, 1.0, 0.8))
+
+
+# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
+func _area() -> Rect2:
+	return get_node("/root/Tela").area()

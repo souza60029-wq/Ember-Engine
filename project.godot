@@ -10,6 +10,7 @@ config/features=PackedStringArray("4.2")
 
 [autoload]
 
+Tela="*res://engine/sistema/Tela.gd"
 Config="*res://engine/config/Config.gd"
 Textos="*res://engine/config/Textos.gd"
 Audio="*res://engine/sons/Audio.gd"
@@ -30,6 +31,7 @@ pointing/emulate_touch_from_mouse=true
 
 [rendering]
 
+environment/defaults/default_clear_color=Color(0.07, 0.07, 0.1, 1)
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true

@@ -175,6 +175,7 @@ func _t(chave: String) -> String:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_node("/root/Tela").ajustar(self)
 	if TelaExportar.voltar_aba >= 0:
 		aba = clampi(TelaExportar.voltar_aba, 0, ABAS.size() - 1)
 		TelaExportar.voltar_aba = -1
@@ -452,7 +453,7 @@ func _desenhar_slot(slot: String) -> void:
 				if antigo != null:
 					draw_texture_rect(antigo, Rect2(0.0, 0.0, VIEW_W, VIEW_H), false)
 				else:
-					draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), CORES[aba])
+					draw_rect(_area(), CORES[aba])
 		"camada2_grade":
 			_desenhar_layer("camada2_grade", _quadro_camada("camada2_grade"))
 		"camada2_movimento":
@@ -542,7 +543,7 @@ func debug_navegar(d_aba: int, d_sub: int) -> void:
 func _draw() -> void:
 	_desenhar_camadas()
 	if config_aberto:
-		draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color(0.0, 0.0, 0.0, 0.6))
+		draw_rect(_area(), Color(0.0, 0.0, 0.0, 0.6))
 		for e in _layout():
 			_desenhar_entrada(e)
 	else:
@@ -558,7 +559,7 @@ func _draw() -> void:
 
 # Escurece a parte de baixo para os ícones e nomes aparecerem sobre qualquer arte.
 func _desenhar_faixa_escura() -> void:
-	var pontos := PackedVector2Array([Vector2(0.0, 330.0), Vector2(VIEW_W, 330.0), Vector2(VIEW_W, VIEW_H), Vector2(0.0, VIEW_H)])
+	var pontos := PackedVector2Array([Vector2(_area().position.x, 330.0), Vector2(_area().end.x, 330.0), _area().end, Vector2(_area().position.x, _area().end.y)])
 	var cores := PackedColorArray([Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.75), Color(0, 0, 0, 0.75)])
 	draw_polygon(pontos, cores)
 
@@ -984,7 +985,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 		return
 	var st := ev as InputEventScreenTouch
 	if st != null and st.pressed:
-		_tocar(st.position)
+		_tocar(get_node("/root/Tela").local(st.position))
 		get_viewport().set_input_as_handled()
 		return
 	var bt := ev as InputEventJoypadButton
@@ -1221,3 +1222,6 @@ func _tocar_musica_da_aba() -> void:
 	_audio().tocar_aleatoria("menu")
 
 
+# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
+func _area() -> Rect2:
+	return get_node("/root/Tela").area()

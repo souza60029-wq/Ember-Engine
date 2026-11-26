@@ -30,6 +30,11 @@ const VEL_ANDAR: float = 400.0
 const CHAO_Y: float = 480.0
 const LIMITE_ESQ: float = 90.0
 const LIMITE_DIR: float = 870.0
+# Blow Off: o oponente é arremessado para longe (ARREMESSO_DISTANCIA). Se ele estiver na metade da tela
+# em direção à qual está sendo jogado (perto da parede), é arremessado contra a parede.
+const TELA_LARGURA: float = 960.0
+const ARREMESSO_FRAMES: int = 36
+const ARREMESSO_DISTANCIA: float = 280.0
 const VIDA_MAX: float = 1000.0
 const HITSTUN: int = 18
 const HITSTUN_BLOWBACK: int = 20
@@ -105,6 +110,7 @@ var oponente = null
 var bloqueando: bool = false
 var bloqueado: bool = false
 var caido_recuperavel: bool = true
+var arremessado: bool = false  # voando até a parede por um Blow Off (sem atrito no ar)
 var carga_tras_t: float = 0.0
 var carga_baixo_t: float = 0.0
 var frames_desde_baixo: int = 999
@@ -422,6 +428,7 @@ func resetar(x: float, olhando_direita: bool) -> void:
 	bloqueando = false
 	bloqueado = false
 	caido_recuperavel = true
+	arremessado = false
 	carga_tras_t = 0.0
 	carga_baixo_t = 0.0
 	frames_desde_baixo = 999
@@ -811,7 +818,8 @@ func _processar_temporizado() -> void:
 
 func _processar_caido(apertados: Dictionary) -> void:
 	tempo += 1
-	vel.x *= 0.85
+	if not arremessado:
+		vel.x *= 0.85
 	if caido_recuperavel and apertados.get("ESQ", false) and barra.valor >= CUSTO_LEVANTAR:
 		barra.gastar(CUSTO_LEVANTAR)
 		estado = Estado.LEVANTANDO
@@ -967,6 +975,7 @@ func receber_bloqueio(g: Dictionary) -> void:
 func receber_acerto(g: Dictionary, dano: float) -> void:
 	reacao_nivel = str(g.get("nivel", "mid"))
 	var era_caido: bool = estado == Estado.CAIDO
+	arremessado = false
 	vida = maxf(0.0, vida - dano)
 	golpe_atual = {}
 	bloqueado = false
@@ -984,10 +993,31 @@ func receber_acerto(g: Dictionary, dano: float) -> void:
 		duracao = CAIDO_BLOWOFF if blowoff else CAIDO_FRAMES
 		caido_recuperavel = not blowoff
 		vel.x = 0.0 if era_caido else _empurrao_base() * 120.0
+		if blowoff:
+			_arremessar()
 	else:
 		estado = Estado.GOLPEADO
 		duracao = HITSTUN
 		vel.x = _empurrao_base() * 60.0
+
+
+# Arremesso do Blow Off. A direção é para longe de quem bateu. Na metade da tela para onde ele está sendo
+# jogado (perto da parede), ele vai até a parede; na outra metade, só é jogado ARREMESSO_DISTANCIA.
+func _arremessar() -> void:
+	var dir: float = _empurrao_base()
+	if oponente != null and not is_equal_approx(pos.x, oponente.pos.x):
+		dir = 1.0 if pos.x > oponente.pos.x else -1.0
+	var meio: float = TELA_LARGURA * 0.5
+	var perto_da_parede: bool = (dir > 0.0 and pos.x > meio) or (dir < 0.0 and pos.x < meio)
+	var alvo: float
+	if perto_da_parede:
+		alvo = LIMITE_DIR if dir > 0.0 else LIMITE_ESQ
+	else:
+		alvo = clampf(pos.x + dir * ARREMESSO_DISTANCIA, LIMITE_ESQ, LIMITE_DIR)
+	arremessado = true
+	no_chao = true
+	vel.x = (alvo - pos.x) / (float(ARREMESSO_FRAMES) * DT)
+	vel.y = -GRAVIDADE * DT * float(ARREMESSO_FRAMES + 1) * 0.5
 
 
 # Onde o golpe pegou, pela altura do centro da hitbox: baixo, medio ou alto.
@@ -1059,6 +1089,9 @@ func _aplicar_fisica() -> void:
 		if no_chao:
 			no_chao = false
 			vel.y = 0.0
+			if arremessado:
+				arremessado = false
+				vel.x = 0.0
 			# Pouso: deslize horizontal do pulo ou do ataque aéreo para no chão.
 			if estado == Estado.PULANDO or estado == Estado.ATACANDO:
 				vel.x = 0.0

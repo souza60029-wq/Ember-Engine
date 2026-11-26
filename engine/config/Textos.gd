@@ -19,6 +19,7 @@ const TABELA := {
 	"exp_confirmar": {"pt": "Toque de novo para apagar", "en": "Tap again to delete"},
 	"cfg_musica": {"pt": "Música", "en": "Music"},
 	"opt_mus_menu": {"pt": "Música do menu", "en": "Menu music"},
+	"opt_normalizar": {"pt": "Normalizador de som", "en": "Sound normalizer"},
 	"opt_mus_luta": {"pt": "Música do combate", "en": "Fight music"},
 	"opt_sons_luta": {"pt": "Sons do combate", "en": "Fight sounds"},
 	"opt_mus_banidas": {"pt": "Músicas que não tocam na luta", "en": "Tracks that never play in fights"},

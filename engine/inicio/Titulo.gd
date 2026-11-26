@@ -38,6 +38,7 @@ func _navegacao() -> Variant:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_node("/root/Tela").ajustar(self)
 	if ResourceLoader.exists(FUNDO):
 		_fundo = load(FUNDO) as Texture2D
 	if ResourceLoader.exists(LOGO):
@@ -59,7 +60,7 @@ func _draw() -> void:
 	if _fundo != null:
 		draw_texture_rect(_fundo, Rect2(0.0, 0.0, VIEW_W, VIEW_H), false)
 	else:
-		draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color.BLACK)
+		draw_rect(_area(), Color.BLACK)
 	# Painel do aviso por cima da arte.
 	var painel := Rect2(80.0, 40.0, VIEW_W - 160.0, 372.0)
 	draw_rect(painel, Color(0.0, 0.0, 0.0, 0.72))
@@ -90,3 +91,8 @@ func _entrar() -> void:
 	_saindo = true
 	_audio().tocar_interface_ou("start", "menu_confirma")
 	_navegacao().ir_para_menu()
+
+
+# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
+func _area() -> Rect2:
+	return get_node("/root/Tela").area()

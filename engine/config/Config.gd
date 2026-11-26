@@ -38,6 +38,7 @@ var rotacao := "automatica"
 var hud_modo := "desligado"
 # Áudio: liga/desliga a música do menu, a música da luta e os sons de luta. Músicas banidas não tocam na luta.
 var musica_menu_ligada := true
+var normalizador_som := true
 var musica_luta_ligada := true
 var sons_luta_ligados := true
 var musicas_banidas: Array = []
@@ -157,6 +158,8 @@ func definir_audio(chave: String, ligado: bool) -> void:
 			musica_luta_ligada = ligado
 		"sons":
 			sons_luta_ligados = ligado
+		"normalizar":
+			normalizador_som = ligado
 	_salvar()
 	audio_mudou.emit()
 
@@ -312,6 +315,7 @@ func _carregar() -> void:
 	musica_menu_ligada = bool(dados.get("mus_menu", true))
 	musica_luta_ligada = bool(dados.get("mus_luta", true))
 	sons_luta_ligados = bool(dados.get("sons_luta", true))
+	normalizador_som = bool(dados.get("normalizar", true))
 	var ban = dados.get("banidas", [])
 	if typeof(ban) == TYPE_ARRAY:
 		musicas_banidas = []
@@ -339,4 +343,4 @@ func _carregar() -> void:
 func _salvar() -> void:
 	var f := FileAccess.open(ARQUIVO, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"modo": modo_escolhido, "idioma": idioma, "debug": debug_hitboxes, "fps_camadas": debug_fps_camadas, "rotacao": rotacao, "mus_menu": musica_menu_ligada, "mus_luta": musica_luta_ligada, "sons_luta": sons_luta_ligados, "banidas": musicas_banidas, "hud": hud_modo, "hud_pos": [hud_pos.x, hud_pos.y], "mapas": {"1": mapas[1], "2": mapas[2]}}))
+		f.store_string(JSON.stringify({"modo": modo_escolhido, "idioma": idioma, "debug": debug_hitboxes, "fps_camadas": debug_fps_camadas, "rotacao": rotacao, "mus_menu": musica_menu_ligada, "mus_luta": musica_luta_ligada, "sons_luta": sons_luta_ligados, "normalizar": normalizador_som, "banidas": musicas_banidas, "hud": hud_modo, "hud_pos": [hud_pos.x, hud_pos.y], "mapas": {"1": mapas[1], "2": mapas[2]}}))
