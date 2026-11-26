@@ -1,0 +1,460 @@
+extends SceneTree
+
+# Testes de lógica. Rodam sem cena e sem autoloads (Config, Textos, Audio, Navegacao, Catalogo).
+# Usam só fixtures em testes/fixtures/, nunca o conteúdo do usuário.
+
+const Caixa = preload("res://engine/nucleo/Caixa.gd")
+const Barra = preload("res://engine/nucleo/Barra.gd")
+const Personagem = preload("res://engine/nucleo/Personagem.gd")
+const Formato = preload("res://engine/formato/Formato.gd")
+const Eventos = preload("res://engine/sons/Eventos.gd")
+
+const FIXTURE := "res://testes/fixtures/boneco_teste/personagem.json"
+
+var falhas: int = 0
+var passou: int = 0
+
+func _init() -> void:
+	_testar_formato()
+	_testar_personagem()
+	_testar_caixa_barra()
+	_testar_combate()
+	_testar_tempo_sprites()
+	_testar_sistema()
+	_testar_blocos()
+	_testar_rev()
+	_testar_eventos()
+	_testar_forge()
+	print("Resultado: %d ok, %d falha(s)" % [passou, falhas])
+	quit(1 if falhas > 0 else 0)
+
+func _checar(nome: String, cond: bool) -> void:
+	if cond:
+		passou += 1
+		print("  ok    - " + nome)
+	else:
+		falhas += 1
+		print("  FALHA - " + nome)
+
+func _sem_botoes() -> Dictionary:
+	return {"LP": false, "LK": false, "HP": false, "HK": false, "BO": false, "ESQ": false}
+
+func _testar_formato() -> void:
+	print("Formato")
+	var r: Dictionary = Formato.ler(FIXTURE)
+	_checar("fixture carrega", bool(r["ok"]))
+	if not bool(r["ok"]):
+		print("    erro: " + str(r["erro"]))
+		return
+	var per: Dictionary = r["personagem"]
+	_checar("fixture tem 2 golpes", per["golpes"].size() == 2)
+	_checar("sanitizar_id", Formato.sanitizar_id("Boneco de Treino!") == "boneco_de_treino")
+	var futuro: Dictionary = Formato.normalizar({"formato": 99, "nome": "X", "golpes": []})
+	_checar("versão futura recusada", not bool(futuro["ok"]))
+	var ms: Array = Formato.moveset(per)
+	_checar("moveset tem um item por golpe", ms.size() == 2)
+
+func _testar_personagem() -> void:
+	print("Personagem")
+	var r: Dictionary = Formato.ler(FIXTURE)
+	var per: Dictionary = r["personagem"]
+	var p = Personagem.new()
+	var outro = Personagem.new()
+	p.oponente = outro
+	outro.oponente = p
+	p.definir_golpes(per["golpes"])
+	outro.definir_golpes(per["golpes"])
+	p.resetar(200.0, true)
+	outro.resetar(720.0, false)
+	_checar("começa parado", p.estado == Personagem.Estado.PARADO)
+	_checar("sem hitbox antes de atacar", not p.hitbox_ativa())
+
+	var lp := _sem_botoes()
+	lp["LP"] = true
+	p.atualizar(Vector2.ZERO, lp)
+	_checar("LP inicia ataque", p.estado == Personagem.Estado.ATACANDO)
+
+	var sem := _sem_botoes()
+	var passou_hit := false
+	for i in range(60):
+		p.atualizar(Vector2.ZERO, sem)
+		if p.hitbox_ativa():
+			passou_hit = true
+	_checar("hitbox ativa durante o golpe", passou_hit)
+	_checar("golpe termina e volta a parado", p.estado == Personagem.Estado.PARADO)
+
+	var g: Dictionary = per["golpes"][0]
+	outro.estado = Personagem.Estado.PARADO
+	_checar("golpe normal acerta alvo parado", outro.resultado_para(g) == "acerto")
+	outro.estado = Personagem.Estado.CAIDO
+	_checar("golpe normal não acerta caído", outro.resultado_para(g) == "nada")
+
+func _testar_caixa_barra() -> void:
+	print("Caixa e Barra")
+	var hb := {"x": 30, "y": -100, "w": 40, "h": 30}
+	var r: Rect2 = Caixa.rect_hitbox(hb, Vector2(100.0, 480.0), true)
+	_checar("hitbox tem o tamanho do JSON", r.size == Vector2(40.0, 30.0))
+	_checar("hitbox olhando para a direita", r.position == Vector2(130.0, 380.0))
+	_checar("colisão simples", Caixa.colidem(Rect2(0, 0, 10, 10), Rect2(5, 5, 10, 10)))
+	_checar("encostando não colide", not Caixa.colidem(Rect2(0, 0, 10, 10), Rect2(10, 0, 10, 10)))
+
+	var b = Barra.new()
+	_checar("barra começa sem estoque", b.estoques_disponiveis() == 0)
+	b.ganhar(100.0)
+	_checar("ganho sai 20% mais rápido (100 vira 120)", absf(float(b.valor) - 120.0) < 0.001)
+	_checar("120 já é 1 estoque", b.estoques_disponiveis() == 1)
+	b.ganhar(1000.0)
+	_checar("barra enche em 500 (5 estoques)", absf(float(b.valor) - 500.0) < 0.001)
+	_checar("5 estoques quando cheia", b.estoques_disponiveis() == 5)
+	_checar("gastar meia barra com barra cheia", b.gastar(Barra.MEIA_BARRA) and absf(float(b.valor) - 450.0) < 0.001)
+	_checar("gastar sem energia é recusado", not b.gastar(9999.0))
+
+func _testar_eventos() -> void:
+	print("Eventos de som")
+	_checar("evento válido", Eventos.valido("voz_dano_leve"))
+	_checar("evento inválido recusado", not Eventos.valido("xyz"))
+
+func _novo_par() -> Array:
+	var r: Dictionary = Formato.ler(FIXTURE)
+	var per: Dictionary = r["personagem"]
+	var a = Personagem.new()
+	var b = Personagem.new()
+	a.oponente = b
+	b.oponente = a
+	a.definir_golpes(per["golpes"])
+	b.definir_golpes(per["golpes"])
+	a.resetar(200.0, true)
+	b.resetar(240.0, false)
+	return [a, b]
+
+func _testar_combate() -> void:
+	print("Combate")
+	var g: Dictionary = Formato.golpe_base("LP")
+	var par: Array = _novo_par()
+	var d = par[1]
+	var sem := _sem_botoes()
+
+	# Defesa normal (segurando trás desde antes) não é parry e gasta a barra.
+	var atras := Vector2(1.0, 0.0)
+	for i in range(30):
+		d.atualizar(atras, sem)
+	_checar("segurar trás vira defesa normal", d.resultado_para(g) == "bloqueio")
+	var antes: float = d.guarda
+	d.receber_bloqueio(g)
+	_checar("defender gasta a barra de defesa", d.guarda < antes)
+
+	# Just defense: apertar trás no instante do golpe.
+	par = _novo_par()
+	d = par[1]
+	for i in range(10):
+		d.atualizar(Vector2.ZERO, sem)
+	d.atualizar(atras, sem)
+	_checar("apertar trás agora abre a janela de parry", d.resultado_para(g) == "parry")
+	var g_antes: float = d.guarda
+	var vida_antes: float = d.vida
+	d.receber_parry(g)
+	_checar("parry não gasta barra", d.guarda == g_antes)
+	_checar("parry não tira vida", d.vida == vida_antes)
+	_checar("parry entra no estado PARRY", d.estado == Personagem.Estado.PARRY)
+
+	# Janela fecha depois de poucos frames.
+	par = _novo_par()
+	d = par[1]
+	d.atualizar(atras, sem)
+	for i in range(Personagem.JANELA_PARRY + 2):
+		d.atualizar(atras, sem)
+	_checar("depois da janela vira defesa normal", d.resultado_para(g) == "bloqueio")
+
+	# Guarda quebra depois de vários golpes e a barra recupera.
+	par = _novo_par()
+	d = par[1]
+	for i in range(40):
+		d.atualizar(atras, sem)
+	var n: int = 0
+	while d.estado != Personagem.Estado.GUARDA_QUEBRADA and n < 50:
+		d.estado = Personagem.Estado.PARADO
+		d.receber_bloqueio(g)
+		n += 1
+	_checar("guarda quebra com golpes defendidos", d.estado == Personagem.Estado.GUARDA_QUEBRADA)
+	_checar("guarda quebrada leva alguns golpes", n > 2)
+	d.atualizar(Vector2.ZERO, sem)
+	_checar("guarda quebrada não defende", d.resultado_para(g) == "acerto")
+	for i in range(Personagem.GUARDA_QUEBRADA_FRAMES + 2):
+		d.atualizar(Vector2.ZERO, sem)
+	_checar("barra recupera na guarda quebrada", d.guarda >= Personagem.GUARDA_MAX - 0.01)
+	_checar("volta ao normal depois", d.estado == Personagem.Estado.PARADO)
+
+	# Regeneração lenta só depois de 1 segundo sem defender.
+	par = _novo_par()
+	d = par[1]
+	d.guarda = 50.0
+	d.frames_sem_guarda = 0
+	for i in range(Personagem.GUARDA_REGEN_ESPERA):
+		d.atualizar(Vector2.ZERO, sem)
+	_checar("não regenera antes de 1 s", d.guarda == 50.0)
+	for i in range(30):
+		d.atualizar(Vector2.ZERO, sem)
+	_checar("regenera devagar depois de 1 s", d.guarda > 50.0 and d.guarda < Personagem.GUARDA_MAX)
+
+	# Esquiva: sem custo, para frente por padrão, para trás com o direcional trás.
+	par = _novo_par()
+	var a = par[0]
+	var x0: float = a.pos.x
+	var esq := _sem_botoes()
+	esq["ESQ"] = true
+	a.atualizar(Vector2.ZERO, esq)
+	_checar("esquiva não gasta barra", a.barra.valor == 0.0)
+	for i in range(Personagem.ESQUIVA_FRAMES):
+		a.atualizar(Vector2.ZERO, sem)
+	_checar("esquiva neutra vai para frente", a.pos.x > x0 + 100.0)
+	par = _novo_par()
+	a = par[0]
+	a.pos.x = 400.0
+	# P1 olha para a esquerda (oponente em 240): "trás" é o eixo X positivo.
+	a.atualizar(Vector2(1.0, 0.0), esq)
+	for i in range(Personagem.ESQUIVA_FRAMES):
+		a.atualizar(Vector2(1.0, 0.0), sem)
+	_checar("esquiva com trás vai para trás", a.pos.x > 400.0 + 100.0)
+
+	# Dano: golpes fortes causam 30% menos.
+	var fraco: Dictionary = Formato.golpe_base("LP")
+	var forte: Dictionary = Formato.golpe_base("HP")
+	_checar("golpe fraco mantém o dano", absf(Personagem.dano_do_golpe(fraco) - float(fraco["dano"])) < 0.001)
+	_checar("golpe forte tem 30% menos dano", absf(Personagem.dano_do_golpe(forte) - float(forte["dano"]) * 0.7) < 0.001)
+
+	# Reação de acerto pela altura.
+	par = _novo_par()
+	d = par[1]
+	d.receber_acerto(Formato.golpe_base("LK"), 10.0)
+	_checar("chute baixo gera reação baixa", d.slot_animacao() == "golpeado_baixo")
+
+	# BO e migração de CD.
+	var antigo: Dictionary = Formato.normalizar_golpe({"botao": "CD"})
+	_checar("botão CD antigo vira BO", str(antigo["botao"]) == "BO")
+	_checar("golpes fixos existem", Formato.golpe_base("BO")["base"] == true and Formato.golpe_base("BO")["blowoff"] == true)
+
+func _testar_tempo_sprites() -> void:
+	print("Sprites e frames")
+	var g: Dictionary = Formato.golpe_base("LP") # 5 + 3 + 8 = 16 frames
+	g["frames"] = ["a.png", "b.png", "c.png", "d.png"]
+	var c: Array = Formato.cronograma(g)
+	_checar("um item por sprite", c.size() == 4)
+	_checar("começa no frame 0", int(c[0]["de"]) == 0)
+	_checar("termina no total do golpe", int(c[3]["ate"]) == 16)
+	var soma: int = 0
+	for it in c:
+		soma += int(it["ate"]) - int(it["de"])
+	_checar("sprites cobrem todos os frames", soma == 16)
+	_checar("sprite no frame 0 é o primeiro", Formato.indice_no_tempo(g, 0) == 0)
+	_checar("sprite no último frame é o último", Formato.indice_no_tempo(g, 15) == 3)
+	g["sprite_impacto"] = 1
+	var c2: Array = Formato.cronograma(g)
+	_checar("sprite de impacto cobre o active", int(c2[1]["de"]) == 5 and int(c2[1]["ate"]) == 8)
+	_checar("com impacto ainda cobre tudo", int(c2[3]["ate"]) == 16)
+	g["frames"] = []
+	_checar("sem sprites não há cronograma", Formato.cronograma(g).is_empty())
+	_checar("ciclo de 2 sprites alterna", Formato.indice_ciclo(2, 0) == 0 and Formato.indice_ciclo(2, Formato.FRAMES_POR_SPRITE_CICLO) == 1)
+	var r: Dictionary = Formato.normalizar({"formato": 1, "nome": "Velho", "golpes": [{"botao": "CD", "nome": "x"}]})
+	_checar("personagem antigo migra", bool(r["ok"]) and str(r["personagem"]["golpes"][0]["botao"]) == "BO")
+	_checar("personagem tem slots de sprite", (r["personagem"]["sprites"] as Dictionary).has("parry"))
+
+
+func _testar_sistema() -> void:
+	print("Controles e HUD do sistema")
+	var Cfg = preload("res://engine/config/Config.gd")
+	var m: Dictionary = Cfg.mapa_padrao()
+	_checar("mapa padrão tem todos os botões", m.size() == Cfg.BOTOES_FISICOS.size())
+	_checar("mapa padrão: X é soco fraco", m["X"] == "LP" and m["RB"] == "BO" and m["LB"] == "ESQ")
+	_checar("funções incluem 'nenhuma'", Cfg.FUNCOES.has(""))
+	_checar("rotações e HUD", Cfg.ROTACOES.size() == 3 and Cfg.HUD_MODOS.size() == 3)
+	var Hud = preload("res://engine/sistema/HudSistema.gd")
+	var h = Hud.new()
+	_checar("iPhone 8 tem botão home", h._tipo_iphone("iPhone10,1") == "home")
+	_checar("iPhone X tem notch", h._tipo_iphone("iPhone10,3") == "notch")
+	_checar("iPhone 13 tem notch", h._tipo_iphone("iPhone14,5") == "notch")
+	_checar("iPhone 14 tem notch", h._tipo_iphone("iPhone14,7") == "notch")
+	_checar("iPhone SE 3 tem botão home", h._tipo_iphone("iPhone14,6") == "home")
+	_checar("iPhone 14 Pro tem Dynamic Island", h._tipo_iphone("iPhone15,2") == "island")
+	_checar("iPhone 16e tem notch", h._tipo_iphone("iPhone17,5") == "notch")
+	h.free()
+
+
+func _testar_blocos() -> void:
+	print("Blocos e sons por sprite")
+	# Normalização: blocos inválidos saem, números ficam dentro dos limites.
+	var g: Dictionary = Formato.normalizar_golpe({"botao": "LP", "blocos": [
+		{"tipo": "mover", "quadro": 3, "vx": 99999, "frames": 0},
+		{"tipo": "inventado"},
+		{"tipo": "comecar_de", "golpe": "Soco", "quando": "xyz"},
+		{"tipo": "ao_fim", "acao": "subir", "vy": 700}]})
+	var bl: Array = g["blocos"]
+	_checar("bloco desconhecido é descartado", bl.size() == 3)
+	_checar("números dos blocos são limitados", int(bl[0]["vx"]) == 600 and int(bl[0]["frames"]) == 1)
+	_checar("'quando' inválido volta ao padrão", str(bl[1]["quando"]) == "acertar")
+	# Som antigo (sons.uso) vira som no sprite 1.
+	var g2: Dictionary = Formato.normalizar_golpe({"botao": "LP", "sons": {"uso": "golpes/a.ogg"}})
+	_checar("som antigo migra para o sprite 1", (g2["sons_quadros"] as Array).size() == 1 and str(g2["sons"]["uso"]) == "")
+
+	# Motor: bloco Mover empurra para frente a partir do frame marcado.
+	var golpe: Dictionary = Formato.golpe_base("LP")
+	golpe["blocos"] = [Formato.bloco_padrao("mover")]
+	golpe["blocos"][0]["quadro"] = 2
+	golpe["blocos"][0]["vx"] = 300
+	golpe["blocos"][0]["frames"] = 4
+	golpe["sons_quadros"] = [{"quadro": 0, "arquivo": "golpes/x.ogg"}]
+	var a = Personagem.new()
+	var b = Personagem.new()
+	a.oponente = b
+	b.oponente = a
+	a.definir_golpes([golpe])
+	b.definir_golpes([golpe])
+	a.resetar(200.0, true)
+	b.resetar(600.0, false)
+	var bt := _sem_botoes()
+	bt["LP"] = true
+	a.atualizar(Vector2.ZERO, bt)
+	_checar("golpe começou", a.estado == Personagem.Estado.ATACANDO)
+	var tocou_som: bool = false
+	for e in a.eventos:
+		if str(e["tipo"]) == "som_quadro":
+			tocou_som = true
+	_checar("som do sprite 1 toca no começo do golpe", tocou_som)
+	var x0: float = a.pos.x
+	for i in range(6):
+		a.atualizar(Vector2.ZERO, _sem_botoes())
+	_checar("bloco Mover anda para frente", a.pos.x > x0 + 5.0)
+
+	# Magia: o bloco gera um evento de projétil.
+	var gm: Dictionary = Formato.golpe_base("HP")
+	gm["blocos"] = [Formato.bloco_padrao("projetil")]
+	gm["blocos"][0]["quadro"] = 0
+	var c = Personagem.new()
+	c.oponente = b
+	c.definir_golpes([gm])
+	c.resetar(200.0, true)
+	var bt2 := _sem_botoes()
+	bt2["HP"] = true
+	c.atualizar(Vector2.ZERO, bt2)
+	var achou: bool = false
+	for e2 in c.eventos:
+		if str(e2["tipo"]) == "projetil":
+			achou = true
+	_checar("bloco Lançar magia cria projétil", achou)
+
+	# Encadeamento: golpe que começa de outro só sai durante o primeiro.
+	var g1: Dictionary = Formato.golpe_base("LP")
+	var g3: Dictionary = Formato.golpe_base("LK")
+	g3["nome"] = "Segundo"
+	g3["blocos"] = [Formato.bloco_padrao("comecar_de")]
+	g3["blocos"][0]["golpe"] = g1["nome"]
+	g3["blocos"][0]["quando"] = "sempre"
+	var d = Personagem.new()
+	d.oponente = b
+	d.definir_golpes([g1, g3])
+	d.resetar(200.0, true)
+	var bk := _sem_botoes()
+	bk["LK"] = true
+	d.atualizar(Vector2.ZERO, bk)
+	_checar("golpe de encadeamento não sai sozinho", d.estado != Personagem.Estado.ATACANDO)
+	var bl1 := _sem_botoes()
+	bl1["LP"] = true
+	d.atualizar(Vector2.ZERO, bl1)
+	for i in range(int(g1["startup"]) + 1):
+		d.atualizar(Vector2.ZERO, bk)
+	_checar("encadeia depois do startup do primeiro golpe", str(d.golpe_atual.get("nome", "")) == "Segundo")
+
+
+func _testar_rev() -> void:
+	print("REV, Pulse e Flatline")
+	var golpes: Array = [Formato.golpe_base("LP"), Formato.golpe_base("HP"), Formato.golpe_base("HK")]
+	var alvo = Personagem.new()
+	alvo.definir_golpes(golpes)
+	alvo.resetar(600.0, false)
+	var a = Personagem.new()
+	a.oponente = alvo
+	a.definir_golpes(golpes)
+	a.resetar(200.0, true)
+	var bt := _sem_botoes()
+	bt["REVP"] = true
+	a.atualizar(Vector2.ZERO, bt)
+	_checar("REV começa o golpe forte", a.estado == Personagem.Estado.ATACANDO and str(a.golpe_atual["botao"]) == "HP")
+	_checar("REV pula a parte lenta (startup)", a.tempo >= int(a.golpe_atual["startup"]))
+	_checar("REV enche o Pulse", absf(a.pulse - Personagem.PULSE_POR_USO) < 0.01)
+
+	var b = Personagem.new()
+	b.oponente = alvo
+	b.definir_golpes(golpes)
+	b.resetar(200.0, true)
+	for i in range(4):
+		b.estado = Personagem.Estado.PARADO
+		b.golpe_atual = {}
+		b._tentar_rev("K")
+	_checar("Pulse cheio entra em Flatline", b.flatline and b.pulse >= 100.0)
+	_checar("Flatline bloqueia o REV", not b._tentar_rev("P"))
+	_checar("Flatline deixa o personagem mais lento", b._mult_vel() < 1.0)
+	var antes: float = b.guarda
+	b.estado = Personagem.Estado.PARADO
+	b.receber_bloqueio(Formato.golpe_base("LP"))
+	var normal: float = Personagem.GUARDA_CUSTO[1]
+	_checar("Flatline gasta a defesa 15% mais rápido", absf((antes - b.guarda) - normal * Personagem.FLATLINE_GUARDA) < 0.01)
+	var sem := _sem_botoes()
+	for i in range(Personagem.PULSE_ESPERA):
+		b.atualizar(Vector2.ZERO, sem)
+	_checar("Pulse espera 2 s antes de esvaziar", b.pulse >= 99.0)
+	for i in range(320):
+		b.atualizar(Vector2.ZERO, sem)
+	_checar("Pulse esvazia e sai do Flatline", b.pulse <= 0.01 and not b.flatline)
+
+
+func _testar_forge() -> void:
+	print("Importar .ember do Ember Forge")
+	var Pacote = load("res://engine/formato/Pacote.gd")
+	var r: Dictionary = Pacote.importar_arquivo("res://testes/fixtures/forge_exemplo.ember")
+	_checar("importa o arquivo do Forge", bool(r["ok"]))
+	if not bool(r["ok"]):
+		print("    erro: " + str(r.get("erro", "")))
+		return
+	var per: Dictionary = r["personagem"]
+	var pf: Array = per["forge"]["moves"]["parado"]["frames"]
+	_checar("pés nivelados: quadro com 3 px a mais de espaço embaixo desce 3 px", int(pf[2]["dy"]) == 3 and int(pf[0]["dy"]) == 0)
+	_checar("as boxes acompanham o deslocamento dos pés", int(pf[2]["boxes"]["hurtbox"][0][1]) == -37)
+	_checar("sprite gravado em PNG", FileAccess.file_exists(str(r["pasta"]) + str(per["forge"]["moves"]["parado"]["frames"][0]["sprite"])))
+	_checar("golpe padrão LP e golpe custom", per["golpes"].size() == 2)
+	var esc: float = float(per["escala_forge"])
+	_checar("personagem de 20 px de altura vira ~320 px", esc >= 15.0 or absf(esc * 20.0 - 320.0) < 80.0 or esc == 8.0)
+	var lp: Dictionary = {}
+	var hado: Dictionary = {}
+	for g in per["golpes"]:
+		if str(g["forge_move"]) == "low_punch":
+			lp = g
+		else:
+			hado = g
+	_checar("LP: startup, active e recovery vêm do Forge", int(lp["startup"]) == 2 and int(lp["active"]) == 2 and int(lp["recovery"]) == 3)
+	_checar("golpe custom ganha um comando", str(hado["comando"]) != "" and bool(hado["so_ar"]))
+	var a = Personagem.new()
+	var b = Personagem.new()
+	a.oponente = b
+	b.oponente = a
+	a.definir_golpes(per["golpes"])
+	a.definir_forge(per["forge"], 2.0)
+	a.resetar(200.0, true)
+	b.resetar(500.0, false)
+	var hr: Array = a.hurt_rects()
+	_checar("hurtbox do frame de 'parado' (20x40 px, escala 2)", hr.size() == 1 and absf(hr[0].size.x - 40.0) < 0.01 and absf(hr[0].size.y - 80.0) < 0.01)
+	_checar("sem hitbox fora do golpe", a.hit_rects().is_empty())
+	var bt := _sem_botoes()
+	bt["LP"] = true
+	a.atualizar(Vector2.ZERO, bt)
+	var sem := _sem_botoes()
+	_checar("LP inicia o ataque", a.estado == Personagem.Estado.ATACANDO)
+	_checar("startup: ainda sem hitbox", a.hit_rects().is_empty())
+	var ativo: bool = false
+	for i in range(8):
+		a.atualizar(Vector2.ZERO, sem)
+		if not a.hit_rects().is_empty():
+			ativo = true
+	_checar("hitbox aparece só no frame active", ativo)
+	for i in range(12):
+		a.atualizar(Vector2.ZERO, sem)
+	_checar("golpe termina e volta ao parado", a.estado == Personagem.Estado.PARADO)
+	DirAccess.remove_absolute(str(r["pasta"]) + str(per["forge"]["moves"]["parado"]["frames"][0]["sprite"]))

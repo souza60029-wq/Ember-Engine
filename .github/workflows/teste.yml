@@ -1,0 +1,48 @@
+name: Teste Godot
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Baixar Godot 4.2.2
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_linux.x86_64.zip -O godot.zip
+          unzip -q godot.zip
+          mv Godot_v4.2.2-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Testes de lógica
+        run: |
+          set -o pipefail
+          timeout 120 ./godot --headless --script testes/teste_nucleo.gd 2>&1 | tee log_logica.txt
+          if grep -q "SCRIPT ERROR\|Parse Error\|Compile Error\|Failed to load script\|FALHA" log_logica.txt; then
+            echo "Erro de script ou teste de lógica falhou"
+            exit 1
+          fi
+
+      - name: Testes de edição e backup
+        run: |
+          set -o pipefail
+          timeout 120 ./godot --headless --script testes/teste_pacote.gd 2>&1 | tee log_pacote.txt
+          if grep -q "SCRIPT ERROR\|Parse Error\|Compile Error\|Failed to load script\|FALHA" log_pacote.txt; then
+            echo "Erro no editor, no backup ou teste falhou"
+            exit 1
+          fi
+
+      - name: Abrir o projeto (checa scripts e cenas)
+        run: |
+          set -o pipefail
+          timeout 120 ./godot --headless --quit-after 180 2>&1 | tee log_projeto.txt
+          if grep -q "SCRIPT ERROR\|Parse Error\|Compile Error\|Failed to load script" log_projeto.txt; then
+            echo "Erro de script ao abrir o projeto"
+            exit 1
+          fi

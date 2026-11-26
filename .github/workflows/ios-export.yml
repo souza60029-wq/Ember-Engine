@@ -1,0 +1,90 @@
+name: Export iOS
+
+on: push
+
+jobs:
+  exportar_ios:
+    runs-on: macos-latest
+    steps:
+      - name: Baixar o codigo
+        uses: actions/checkout@v4
+
+      - name: Baixar o Godot (macOS)
+        run: |
+          wget https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip
+          unzip Godot_v4.4.1-stable_macos.universal.zip
+          chmod +x Godot.app/Contents/MacOS/Godot
+
+      - name: Baixar templates de exportacao
+        run: |
+          wget https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+          mkdir -p ~/Library/Application\ Support/Godot/export_templates/4.4.1.stable
+          unzip -q Godot_v4.4.1-stable_export_templates.tpz
+          mv templates/* ~/Library/Application\ Support/Godot/export_templates/4.4.1.stable/
+
+      - name: Instalar Python e Pillow
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Converter GIFs do menu em quadros PNG
+        run: |
+          pip install pillow
+          python3 ferramentas/gif_para_frames.py ui
+
+      - name: Exportar projeto Xcode (sem compilar ainda)
+        run: |
+          mkdir -p build/ios
+          ./Godot.app/Contents/MacOS/Godot --headless --verbose --export-debug "iOS" build/ios/project
+          ls -la build/ios
+
+      - name: Adicionar seletor de galeria e arquivos (nativo)
+        continue-on-error: true
+        run: |
+          set -e
+          echo "=== Conferindo o codigo nativo ==="
+          xcrun --sdk iphoneos clang -fobjc-arc -fsyntax-only -arch arm64 -miphoneos-version-min=13.0 \
+            -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" ios/EmberSeletor.m
+          echo "=== Adicionando ao projeto Xcode ==="
+          (gem list -i xcodeproj > /dev/null) || sudo gem install xcodeproj
+          ruby ferramentas/adicionar_seletor_ios.rb build/ios/project.xcodeproj
+
+      - name: Compilar o projeto Xcode (sem assinatura)
+        run: |
+          xcodebuild -project build/ios/project.xcodeproj \
+            -scheme project \
+            -configuration Release \
+            -sdk iphoneos \
+            -arch arm64 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            -derivedDataPath build/ios/DerivedData \
+            build
+          echo "=== Procurando o .app gerado ==="
+          find build/ios/DerivedData -name "*.app" -maxdepth 6
+
+      - name: Instalar ldid
+        run: |
+          brew install ldid
+
+      - name: Fakesign e empacotar em .ipa
+        run: |
+          APP_PATH="build/ios/DerivedData/Build/Products/Release-iphoneos/project.app"
+          echo "=== Assinando executavel interno com ldid ==="
+          ldid -S "$APP_PATH/project"
+          echo "=== Montando estrutura Payload ==="
+          mkdir -p build/ipa/Payload
+          cp -R "$APP_PATH" build/ipa/Payload/
+          cd build/ipa
+          zip -r -y ../../ProjectEmber.ipa Payload
+          cd ../..
+          echo "=== Resultado final ==="
+          ls -la ProjectEmber.ipa
+
+      - name: Enviar IPA final como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProjectEmber-ipa
+          path: ProjectEmber.ipa

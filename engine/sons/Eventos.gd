@@ -1,0 +1,18 @@
+extends RefCounted
+
+# Lista fixa dos eventos de som do personagem e dos sons comuns.
+# O nome do arquivo é o nome do evento. Ex.: personagens/boneco_treino_1/sons/voz_dano_leve.ogg
+
+const TODOS := [
+	"ataque_leve", "ataque_forte", "ataque_especial",
+	"voz_ataque_leve", "voz_ataque_forte",
+	"voz_dano_leve", "voz_dano_forte",
+	"voz_queda", "voz_morte",
+	"bloqueio", "impacto_leve", "impacto_forte",
+	"pulo", "pouso", "passo", "esquiva", "levantar", "rev",
+	"vitoria", "derrota", "parry", "guarda_quebrada",
+]
+
+
+static func valido(nome: String) -> bool:
+	return TODOS.has(nome)
