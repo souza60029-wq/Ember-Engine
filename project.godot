@@ -10,7 +10,6 @@ config/features=PackedStringArray("4.2")
 
 [autoload]
 
-Tela="*res://engine/sistema/Tela.gd"
 Config="*res://engine/config/Config.gd"
 Textos="*res://engine/config/Textos.gd"
 Audio="*res://engine/sons/Audio.gd"
@@ -22,7 +21,7 @@ Catalogo="*res://engine/catalogo/Catalogo.gd"
 window/size/viewport_width=960
 window/size/viewport_height=540
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep"
 window/handheld/orientation=4
 
 [input_devices]

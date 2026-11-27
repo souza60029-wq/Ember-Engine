@@ -116,7 +116,6 @@ func _testar_compilacao() -> void:
 		"res://engine/config/Config.gd",
 		"res://engine/config/Configuracoes.gd",
 		"res://engine/sistema/HudSistema.gd",
-		"res://engine/sistema/Tela.gd",
 		"res://engine/sons/Audio.gd",
 		"res://engine/editor/EditorBlocos.gd",
 		"res://engine/debug/LayoutDebug.gd",

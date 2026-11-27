@@ -8,6 +8,7 @@ const Barra = preload("res://engine/nucleo/Barra.gd")
 const Personagem = preload("res://engine/nucleo/Personagem.gd")
 const Formato = preload("res://engine/formato/Formato.gd")
 const Eventos = preload("res://engine/sons/Eventos.gd")
+const EmberForge = preload("res://engine/formato/EmberForge.gd")
 
 const FIXTURE := "res://testes/fixtures/boneco_teste/personagem.json"
 
@@ -22,9 +23,11 @@ func _init() -> void:
 	_testar_tempo_sprites()
 	_testar_sistema()
 	_testar_blocos()
-	_testar_rev()
+	_testar_quick()
 	_testar_eventos()
 	_testar_forge()
+	_testar_input_arquivo()
+	_testar_forge_v2()
 	print("Resultado: %d ok, %d falha(s)" % [passou, falhas])
 	quit(1 if falhas > 0 else 0)
 
@@ -219,8 +222,8 @@ func _testar_combate() -> void:
 	# Dano: golpes fortes causam 30% menos.
 	var fraco: Dictionary = Formato.golpe_base("LP")
 	var forte: Dictionary = Formato.golpe_base("HP")
-	_checar("golpe fraco mantém o dano", absf(Personagem.dano_do_golpe(fraco) - float(fraco["dano"])) < 0.001)
-	_checar("golpe forte tem 30% menos dano", absf(Personagem.dano_do_golpe(forte) - float(forte["dano"]) * 0.7) < 0.001)
+	_checar("golpe fraco mantém o dano", absf(Personagem.dano_do_golpe(fraco) - float(fraco["dano"]) * Personagem.DANO_LEGADO) < 0.001)
+	_checar("golpe forte tem 30% menos dano", absf(Personagem.dano_do_golpe(forte) - float(forte["dano"]) * Personagem.DANO_LEGADO * 0.7) < 0.001)
 
 	# Reação de acerto pela altura.
 	par = _novo_par()
@@ -364,8 +367,8 @@ func _testar_blocos() -> void:
 	_checar("encadeia depois do startup do primeiro golpe", str(d.golpe_atual.get("nome", "")) == "Segundo")
 
 
-func _testar_rev() -> void:
-	print("REV, Pulse e Flatline")
+func _testar_quick() -> void:
+	print("Quick, Pulse e Flatline")
 	var golpes: Array = [Formato.golpe_base("LP"), Formato.golpe_base("HP"), Formato.golpe_base("HK")]
 	var alvo = Personagem.new()
 	alvo.definir_golpes(golpes)
@@ -375,11 +378,11 @@ func _testar_rev() -> void:
 	a.definir_golpes(golpes)
 	a.resetar(200.0, true)
 	var bt := _sem_botoes()
-	bt["REVP"] = true
+	bt["QP"] = true
 	a.atualizar(Vector2.ZERO, bt)
-	_checar("REV começa o golpe forte", a.estado == Personagem.Estado.ATACANDO and str(a.golpe_atual["botao"]) == "HP")
-	_checar("REV pula a parte lenta (startup)", a.tempo >= int(a.golpe_atual["startup"]))
-	_checar("REV enche o Pulse", absf(a.pulse - Personagem.PULSE_POR_USO) < 0.01)
+	_checar("Quick começa o golpe forte", a.estado == Personagem.Estado.ATACANDO and str(a.golpe_atual["botao"]) == "HP")
+	_checar("Quick pula a parte lenta (startup)", a.tempo >= int(a.golpe_atual["startup"]))
+	_checar("Quick enche o Pulse", absf(a.pulse - Personagem.PULSE_POR_USO) < 0.01)
 
 	var b = Personagem.new()
 	b.oponente = alvo
@@ -388,9 +391,9 @@ func _testar_rev() -> void:
 	for i in range(4):
 		b.estado = Personagem.Estado.PARADO
 		b.golpe_atual = {}
-		b._tentar_rev("K")
+		b._tentar_quick("K")
 	_checar("Pulse cheio entra em Flatline", b.flatline and b.pulse >= 100.0)
-	_checar("Flatline bloqueia o REV", not b._tentar_rev("P"))
+	_checar("Flatline bloqueia o Quick", not b._tentar_quick("P"))
 	_checar("Flatline deixa o personagem mais lento", b._mult_vel() < 1.0)
 	var antes: float = b.guarda
 	b.estado = Personagem.Estado.PARADO
@@ -421,7 +424,7 @@ func _testar_forge() -> void:
 	_checar("sprite gravado em PNG", FileAccess.file_exists(str(r["pasta"]) + str(per["forge"]["moves"]["parado"]["frames"][0]["sprite"])))
 	_checar("golpe padrão LP e golpe custom", per["golpes"].size() == 2)
 	var esc: float = float(per["escala_forge"])
-	_checar("personagem de 20 px de altura vira ~320 px", esc >= 15.0 or absf(esc * 20.0 - 320.0) < 80.0 or esc == 8.0)
+	_checar("personagem de 20 px de altura vira ~ALTURA_ALVO", absf(esc * 20.0 - EmberForge.ALTURA_ALVO) < 40.0 or esc == 8.0)
 	var lp: Dictionary = {}
 	var hado: Dictionary = {}
 	for g in per["golpes"]:
@@ -458,3 +461,81 @@ func _testar_forge() -> void:
 		a.atualizar(Vector2.ZERO, sem)
 	_checar("golpe termina e volta ao parado", a.estado == Personagem.Estado.PARADO)
 	DirAccess.remove_absolute(str(r["pasta"]) + str(per["forge"]["moves"]["parado"]["frames"][0]["sprite"]))
+
+
+func _testar_input_arquivo() -> void:
+	print("Comandos vindos do arquivo (Forge v2)")
+	var comando: Dictionary = Formato.padrao_golpe()
+	comando["nome"] = "Teste"
+	comando["input"] = {"seq": [2, 3, 6], "botao": "HP", "janela": 24, "tol": 6}
+	comando["quick"] = {"botao": "QP", "corta": "startup", "pulse": 12.5}
+	var simples: Dictionary = Formato.padrao_golpe()
+	simples["nome"] = "Soco"
+	simples["input"] = {"seq": [], "botao": "HP", "janela": 24, "tol": 6}
+	var alvo = Personagem.new()
+	alvo.resetar(600.0, false)
+	var hp := _sem_botoes()
+	hp["HP"] = true
+	var qp := _sem_botoes()
+	qp["QP"] = true
+	var meia_lua: Array = [Vector2(0, 1), Vector2(1, 1), Vector2(1, 0)]
+
+	var a = Personagem.new()
+	a.oponente = alvo
+	a.definir_golpes([simples, comando])
+	a.resetar(200.0, true)
+	for d in meia_lua:
+		a.atualizar(d, _sem_botoes())
+	a.atualizar(Vector2(1, 0), hp)
+	_checar("2,3,6 + HP executa o golpe com comando (a sequência mais longa vence)", a.estado == Personagem.Estado.ATACANDO and str(a.golpe_atual["nome"]) == "Teste")
+
+	var b = Personagem.new()
+	b.oponente = alvo
+	b.definir_golpes([simples, comando])
+	b.resetar(200.0, true)
+	b.atualizar(Vector2.ZERO, hp)
+	_checar("HP sozinho executa o golpe simples", b.estado == Personagem.Estado.ATACANDO and str(b.golpe_atual["nome"]) == "Soco")
+
+	var c = Personagem.new()
+	c.oponente = alvo
+	c.definir_golpes([simples, comando])
+	c.resetar(200.0, true)
+	for d in meia_lua:
+		c.atualizar(d, _sem_botoes())
+	c.atualizar(Vector2(1, 0), qp)
+	_checar("2,3,6 + QP sai pelo Quick do golpe", c.estado == Personagem.Estado.ATACANDO and str(c.golpe_atual["nome"]) == "Teste")
+	_checar("Quick enche o Pulse com o valor do arquivo", absf(c.pulse - 12.5) < 0.01)
+	_checar("Quick pula o startup", c.tempo >= int(c.golpe_atual["startup"]))
+
+	var e = Personagem.new()
+	e.oponente = alvo
+	e.definir_golpes([simples, comando])
+	e.resetar(200.0, true)
+	e.atualizar(Vector2.ZERO, qp)
+	_checar("QP sozinho não faz o golpe que exige 2,3,6", e.estado != Personagem.Estado.ATACANDO)
+
+	_checar("100% de vida e dano em %", Personagem.VIDA_MAX == 100.0 and absf(Personagem.dano_do_golpe({"dano": 90, "forca": 1, "dano_pct": 12.5}) - 12.5) < 0.001)
+
+
+func _testar_forge_v2() -> void:
+	print("Importar .ember v2 (pulos, repetições, quick, props)")
+	var Pacote = load("res://engine/formato/Pacote.gd")
+	var r: Dictionary = Pacote.importar_arquivo("res://testes/fixtures/exemplo_v2.ember")
+	_checar("importa o exemplo v2", bool(r["ok"]))
+	if not bool(r["ok"]):
+		print("    erro: " + str(r.get("erro", "")))
+		return
+	var per: Dictionary = r["personagem"]
+	var pulos: Dictionary = per["forge"]["pulos"]
+	_checar("4 pulos lidos do arquivo", pulos.size() == 4 and int(pulos["normal"]["ticks"]) == 50 and absf(float(pulos["alto"]["altura"]) - 200.0) < 0.01)
+	var afk: Dictionary = per["forge"]["moves"]["afk"]
+	_checar("afk: vento 3 vezes e depois piscar para sempre", bool(afk["usa_trechos"]) and (afk["cron_loop"] as Array).size() == 12 and (afk["cron"] as Array).size() == 96)
+	var bola: Dictionary = {}
+	var parede: Dictionary = {}
+	for g in per["golpes"]:
+		if str(g["forge_move"]) == "bola_de_fogo":
+			bola = g
+		if str(g["forge_move"]) == "golpe_wall":
+			parede = g
+	_checar("bola_de_fogo: 2,3,6 + HP, quick QP e dano em %", (bola["input"]["seq"] as Array).size() == 3 and str(bola["input"]["botao"]) == "HP" and str(bola["quick"]["botao"]) == "QP" and absf(float(bola["dano_pct"]) - 14.25) < 0.001)
+	_checar("golpe_wall tem a prop wall", not parede.is_empty() and str(parede["props"][0]["k"]) == "wall")

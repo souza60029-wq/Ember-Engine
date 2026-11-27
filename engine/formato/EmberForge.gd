@@ -3,12 +3,18 @@ extends RefCounted
 # Lê o arquivo .ember gerado pelo Ember Forge (JSON com sprites em base64, boxes por frame, ticks,
 # fases, magias e condições; ver EMBER_FORMAT.md) e monta um personagem no formato da engine.
 # Os sprites viram PNGs em <pasta>/sprites/. As boxes ficam em "forge.moves" (px do sprite, x+ = frente).
-# O que a Forge NÃO manda (inputs, dano, custo, movimento) a engine decide aqui.
+# Formato 2: inputs, pulos, quick, props, hit, dano, repetições e sons vêm no arquivo. O que a Forge
+# NÃO manda (força, custo, física) a engine decide aqui. Arquivos v1 continuam valendo.
 
 const Formato = preload("res://engine/formato/Formato.gd")
 
 const MAX_TICKS := 220
-const ALTURA_ALVO := 320.0   # altura do personagem na tela (cerca de 60% de 540, como o KOF)
+# TAMANHO DO PERSONAGEM NA TELA: altura em px (de 540) que o primeiro quadro de "parado" ocupa.
+# Era 320; agora 240 (25% menor). Mude este valor para aumentar ou diminuir todos os personagens.
+const ALTURA_ALVO := 240.0
+# Se true, a escala é arredondada para baixo em número inteiro (pixels nítidos, mas o tamanho pula de
+# 2x para 3x). Com false, o tamanho segue ALTURA_ALVO exatamente.
+const ESCALA_INTEIRA := false
 const MAX_SPRITES := 3000
 
 # Slot antigo da engine -> move da Forge.
@@ -88,13 +94,41 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 		arquivos[str(id)] = nome_arq
 		tamanhos[str(id)] = Vector2i(img.get_width(), img.get_height())
 
+	# 1b) sons (tabela deduplicada): gravados em pasta/sons/. Só wav, mp3 e ogg tocam na engine.
+	var sons_arq := {}   # id -> "sons/xxx.ext"
+	var sons_ignorados: int = 0
+	if typeof(raiz.get("sons", null)) == TYPE_DICTIONARY:
+		DirAccess.make_dir_recursive_absolute(pasta + "sons/")
+		for sid in (raiz["sons"] as Dictionary).keys():
+			var si: Variant = raiz["sons"][sid]
+			if typeof(si) != TYPE_DICTIONARY:
+				continue
+			var ext: String = str((si as Dictionary).get("formato", "")).to_lower()
+			if not ["wav", "mp3", "ogg"].has(ext):
+				sons_ignorados += 1
+				continue
+			var dados: String = str(si.get("dados", ""))
+			var vir: int = dados.find(",")
+			if vir >= 0:
+				dados = dados.substr(vir + 1)
+			var sb: PackedByteArray = Marshalls.base64_to_raw(dados)
+			if sb.is_empty():
+				continue
+			var arq_som: String = "sons/" + _arq(str(sid)) + "." + ext
+			var fs := FileAccess.open(pasta + arq_som, FileAccess.WRITE)
+			if fs == null:
+				continue
+			fs.store_buffer(sb)
+			fs.close()
+			sons_arq[str(sid)] = arq_som
+
 	# 2) moves
 	var moves := {}
 	for nome in (raiz["moves"] as Dictionary).keys():
 		var m: Variant = raiz["moves"][nome]
 		if typeof(m) != TYPE_DICTIONARY:
 			continue
-		var mv: Dictionary = _move(str(nome), m, arquivos, tamanhos, espelha, vazios)
+		var mv: Dictionary = _move(str(nome), m, arquivos, tamanhos, espelha, vazios, sons_arq)
 		if not (mv["frames"] as Array).is_empty() or str(mv["tipo"]) == "Golpes":
 			moves[str(nome)] = mv
 	if not moves.has("parado") or (moves["parado"]["frames"] as Array).is_empty():
@@ -104,7 +138,7 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 	var pf: Dictionary = moves["parado"]["frames"][0]
 	var altura: float = maxf(float(pf["h"]), 8.0)
 	var esc: float = ALTURA_ALVO / altura
-	esc = float(floori(esc)) if esc >= 2.0 else esc
+	esc = float(floori(esc)) if (ESCALA_INTEIRA and esc >= 2.0) else esc
 	esc = clampf(esc, 1.0, 8.0)
 
 	# 4) golpes da engine
@@ -123,10 +157,20 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 			g["nome"] = str(nome).replace("_", " ").capitalize()
 			g["dano"] = 80
 			g["forca"] = 2
-			g["comando"] = COMANDOS_CUSTOM[n_custom % COMANDOS_CUSTOM.size()]
-			g["botao"] = "LP" if str(g["comando"]).ends_with("P") else "LK"
-			n_custom += 1
+			if (mv["input"] as Dictionary).is_empty():
+				# Arquivo v1 (sem input): a engine escolhe um comando.
+				g["comando"] = COMANDOS_CUSTOM[n_custom % COMANDOS_CUSTOM.size()]
+				g["botao"] = "LP" if str(g["comando"]).ends_with("P") else "LK"
+				n_custom += 1
 		g["forge_move"] = str(nome)
+		# Formato 2: comando, quick, propriedades, hit e dano vêm do arquivo.
+		g["input"] = mv["input"]
+		if not (mv["input"] as Dictionary).is_empty() and str((mv["input"] as Dictionary)["botao"]) != "" and str((mv["input"] as Dictionary)["botao"]) != "ESQ":
+			g["botao"] = str((mv["input"] as Dictionary)["botao"])
+		g["quick"] = mv["quick"]
+		g["props"] = mv["props"]
+		g["hit"] = mv["hit"]
+		g["dano_pct"] = float(mv["dano"])
 		g["nivel"] = str(mv["nivel"])
 		g["condicoes"] = mv["condicoes"]
 		g["so_ar"] = false
@@ -182,9 +226,25 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 			"sprites": slots,
 			"magias": [],
 			"golpes": golpes,
-			"forge": {"moves": forge_moves},
+			"forge": {"moves": forge_moves, "pulos": _pulos(raiz.get("pulos", null)), "sons_ignorados": sons_ignorados},
 		},
 	}
+
+
+# Os 4 pulos do arquivo: altura (px), ticks no ar, avanço (px) e comando. Vazio = valores da engine.
+static func _pulos(v: Variant) -> Dictionary:
+	var r := {}
+	if typeof(v) != TYPE_DICTIONARY:
+		return r
+	for k in ["normal", "alto", "sombra_alto", "sombra_baixo"]:
+		var p: Variant = (v as Dictionary).get(k, null)
+		if typeof(p) != TYPE_DICTIONARY:
+			continue
+		r[k] = {"altura": clampf(float(p.get("altura", 140.0)), 10.0, 800.0),
+			"ticks": clampi(int(p.get("ticks_no_ar", 50)), 10, 300),
+			"avanco": clampf(float(p.get("avanco", 0.0)), 0.0, 1200.0),
+			"input": Formato.normalizar_input(p.get("input", {}))}
+	return r
 
 
 # Quantas linhas de baixo para cima são totalmente transparentes (distância dos pés até a borda do PNG).
@@ -247,14 +307,81 @@ static func _caixa(b: Variant, espelha: bool) -> Array:
 	return [x, y, w, h]
 
 
-static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: Dictionary, espelha: bool, vazios: Dictionary) -> Dictionary:
+# "Próximo sprite se...": {se, sub, espera (ticks)}. Vazio = só pelo tempo.
+static func _proximo(v: Variant) -> Dictionary:
+	if typeof(v) != TYPE_DICTIONARY or not ["colisao", "acertou", "botao"].has(str(v.get("se", ""))):
+		return {}
+	return {"se": str(v["se"]), "sub": str(v.get("sub", "")), "espera": clampi(int(round(float(v.get("espera_ms", 0)) * 60.0 / 1000.0)), 0, 600)}
+
+
+# Sons do frame: [{arquivo, vol (0-1), canal (sfx|voz), quando (inicio|acertar|bloqueado)}].
+static func _sons_frame(v: Variant, sons_arq: Dictionary) -> Array:
+	var r: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return r
+	for s in v:
+		if typeof(s) == TYPE_DICTIONARY and sons_arq.has(str(s.get("id", ""))):
+			var q: String = str(s.get("quando", "inicio"))
+			r.append({"arquivo": sons_arq[str(s["id"])], "vol": clampf(float(s.get("vol", 100)) / 100.0, 0.0, 1.0),
+				"canal": "voz" if str(s.get("canal", "sfx")) == "voz" else "sfx",
+				"quando": q if ["inicio", "acertar", "bloqueado"].has(q) else "inicio"})
+	return r
+
+
+# Repetições do move já com os índices desta lista de frames: [{de, ate, vezes}].
+static func _trechos(v: Variant, mapa: Dictionary) -> Array:
+	var r: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return r
+	for t in v:
+		if typeof(t) == TYPE_DICTIONARY and mapa.has(int(t.get("de", -1))) and mapa.has(int(t.get("ate", -1))):
+			r.append({"de": int(mapa[int(t["de"])]), "ate": int(mapa[int(t["ate"])]), "vezes": maxi(int(t.get("vezes", 1)), 0)})
+	return r
+
+
+# Um índice de frame por tick, já com as repetições. "loop" é a parte que repete para sempre (vezes 0);
+# travar_em segura o último frame. Ver "Repetições e fim da animação" no EMBER_FORMAT.md.
+static func _linha_do_tempo(frames: Array, trechos: Array, travar: int) -> Dictionary:
+	var cron: Array = []
+	var contador := {}
+	var i: int = 0
+	var visitas: int = 0
+	while i < frames.size() and visitas < 600 and cron.size() < 1200:
+		visitas += 1
+		for k in range(int(frames[i]["ticks"])):
+			cron.append(i)
+		if i == travar:
+			break
+		var tr: Dictionary = {}
+		for t in trechos:
+			if int(t["ate"]) == i:
+				tr = t
+				break
+		if tr.is_empty():
+			i += 1
+			continue
+		if int(tr["vezes"]) == 0:
+			var lp: Array = []
+			for j in range(int(tr["de"]), i + 1):
+				for k in range(int(frames[j]["ticks"])):
+					lp.append(j)
+			return {"cron": cron.slice(0, maxi(cron.size() - lp.size(), 0)), "loop": lp}
+		var c: int = int(contador.get(i, 0)) + 1
+		contador[i] = c
+		i = int(tr["de"]) if c < int(tr["vezes"]) else i + 1
+	return {"cron": cron, "loop": []}
+
+
+static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: Dictionary, espelha: bool, vazios: Dictionary, sons_arq: Dictionary = {}) -> Dictionary:
 	var frames: Array = []
 	var cron: Array = []         # um índice de frame por tick
 	var sprites_ticks: Array = []
 	var sids: Array = []
+	var mapa := {}               # índice do frame no arquivo -> índice nesta lista
 	var lista: Variant = m.get("frames", [])
 	if typeof(lista) == TYPE_ARRAY:
-		for fr in lista:
+		for pos_fr in range((lista as Array).size()):
+			var fr: Variant = lista[pos_fr]
 			if typeof(fr) != TYPE_DICTIONARY:
 				continue
 			var cam: Dictionary = fr.get("camadas", {}) if typeof(fr.get("camadas", {})) == TYPE_DICTIONARY else {}
@@ -285,12 +412,15 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 			if typeof(lista_tags) == TYPE_ARRAY:
 				for t in lista_tags:
 					if typeof(t) == TYPE_DICTIONARY:
-						tags.append({"k": str(t.get("k", "")), "modo": str(t.get("modo", "some")), "vx": float(t.get("vx", 0)),
-							"vy": float(t.get("vy", 0)), "alcance": float(t.get("alcance", 0))})
+						tags.append({"k": str(t.get("k", "")), "modo": "fica" if str(t.get("modo", "atravessa")) == "fica" else "atravessa",
+							"vx": float(t.get("vx", 0)), "vy": float(t.get("vy", 0)), "alcance": float(t.get("alcance", 0)),
+							"dur_ticks": clampi(int(t.get("dur_ticks", 90)), 1, 600)})
 			var idx: int = frames.size()
+			mapa[int(fr.get("i", pos_fr))] = idx
 			sids.append(sid)
 			frames.append({"i": idx, "dy": 0, "sprite": arquivos[sid], "w": tam.x, "h": tam.y, "ticks": ticks, "fase": str(fr.get("fase", "")),
-				"boxes": boxes, "magia": magia, "tags": tags})
+				"boxes": boxes, "magia": magia, "tags": tags, "proximo": _proximo(fr.get("proximo", null)),
+				"sons": _sons_frame(fr.get("sons", null), sons_arq)})
 			for k in range(ticks):
 				if cron.size() < MAX_TICKS:
 					cron.append(idx)
@@ -311,7 +441,8 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 	if typeof(lista_conds) == TYPE_ARRAY:
 		for c in lista_conds:
 			if typeof(c) == TYPE_DICTIONARY and ["no_ar", "no_chao", "agachado", "depois_de", "depois_de_acertar"].has(str(c.get("k", ""))):
-				conds.append({"k": str(c["k"]), "golpe": str(c.get("golpe", ""))})
+				conds.append({"k": str(c["k"]), "golpe": str(c.get("golpe", "")), "de": maxi(int(c.get("de", 0)), 0),
+					"ate": int(c.get("ate", -1)), "apos_ticks": maxi(int(c.get("apos_ticks", 0)), 0)})
 	var der: Dictionary = {"startup": 0, "active": 0, "recovery": 0}
 	if typeof(m.get("derivado_60fps", null)) == TYPE_DICTIONARY:
 		for k in der.keys():
@@ -325,13 +456,27 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 		for t2 in fr2["tags"]:
 			if solta < 0 and str(t2["k"]) == "solta":
 				solta = int(fr2["i"])
+	# Repetições (trechos), travar_em e loop infinito. Sem esses campos: padrão do formato (EM_CICLO).
+	var tem_rep: bool = m.has("trechos") or m.has("travar_em") or m.has("repeticao")
+	var linha: Dictionary = {"cron": cron, "loop": []}
+	if tem_rep:
+		linha = _linha_do_tempo(frames, _trechos(m.get("trechos", []), mapa), int(mapa.get(int(m.get("travar_em", -1)), -1)))
+	var props: Array = Formato._props(m.get("props", []))
+	var dano: float = clampf(float(m.get("dano", -1.0)), -1.0, 100.0)
 	return {
 		"solta": solta,
 		"tipo": tipo_m,
-		"loop": EM_CICLO.has(nome),
+		"loop": EM_CICLO.has(nome) and not tem_rep,
 		"ticks_total": cron.size(),
 		"frames": frames,
-		"cron": cron,
+		"cron": linha["cron"],
+		"cron_loop": linha["loop"],
+		"usa_trechos": tem_rep,
+		"input": Formato.normalizar_input(m.get("input", {})),
+		"quick": Formato._quick(m.get("quick", {})),
+		"props": props,
+		"hit": Formato._hit(m.get("hit", {})),
+		"dano": dano,
 		"sprites_ticks": sprites_ticks,
 		"nivel": nivel,
 		"condicoes": conds,

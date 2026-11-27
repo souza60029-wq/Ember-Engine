@@ -1,0 +1,3327 @@
+{
+ "ember_format": 2,
+ "app": "Ember Forge",
+ "nome": "Exemplo",
+ "fps_logico": 60,
+ "olhando": "direita",
+ "pulos": {
+  "normal": {
+   "altura": 140,
+   "ticks_no_ar": 50,
+   "avanco": 110,
+   "input": {
+    "seq": [
+     8
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "alto": {
+   "altura": 200,
+   "ticks_no_ar": 62,
+   "avanco": 130,
+   "input": {
+    "seq": [
+     2,
+     8
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "sombra_baixo": {
+   "altura": 110,
+   "ticks_no_ar": 80,
+   "avanco": 160,
+   "input": {
+    "seq": [
+     8
+    ],
+    "botao": "ESQ",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "sombra_alto": {
+   "altura": 170,
+   "ticks_no_ar": 95,
+   "avanco": 190,
+   "input": {
+    "seq": [
+     2,
+     8
+    ],
+    "botao": "ESQ",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  }
+ },
+ "sons": {
+  "63f118203ba4_1004B": {
+   "nome": "whoosh_soco",
+   "formato": "wav",
+   "bytes": 1004,
+   "dados": "data:audio/wav;base64,UklGRuQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YcADAACAlKi6yNLY2dTMvq6bhnJeSzwxKicqMT1MXnKGm629ytLW1dDGuKeUgGtYSDowKyouN0NTZXmNoLHAy9LU0cu/saCNeWZURTgwLS0zPEpabH+TpbXCy9DRzcW5qpmGc2BQQjcxLzE4QlBhc4aYqbjDy8/OycCzo5KAbVxNQDcyMjU9SFdoeYydrbrEyszKxLqsnYt6aFhKPzc0NTpDT11uf5GhsLzEycrGv7SmloV0Y1RIPjg2OD9IVWR0hZals73Ex8bCua6gkH9vX1FGPjo5PENOW2p6ipqotL3DxcO9tKiainpqXE9FPzw8QUlTYXB/j56rtr3Cwr+4r6KUhXVmWU1FQD5ARU5ZZ3WFlKGtt73Av7uzqZ2Of3FjVkxFQUFESlNfbHuJl6Svt7y9vLaupJeJe21gVExGQ0RIT1hkcX+Nm6awtrq7uLKpnpKEdmldU0xHRUdMVF5pdoSRnaiwtri4tK2kmY2AcmZbUkxISEtQWGNue4iUoKmwtLa0sKmflIh7b2RaUk1LS09VXWhzgIyXoaqws7OxrKSaj4R3bGJZUk5NTlNZYmx4g4+ao6qvsbCtp5+Wi4B0aWBYU1BQUldeZ3F8h5Kbo6mtrq2po5uRh3xxZ19YVFJSVVtia3V/ipSdpKmrrKqln5aNg3lvZl5ZVVRWWV9mb3mDjZado6epqaahmpKJgHZtZV5aV1dZXWNqc3yGj5eeo6anpqKdlo6GfHRrZF9bWVpcYWdud4CIkJieoqSkop+Zk4uCenJqZGBdXF1gZWtyeoKKkpidoKKhn5uWj4eAeHBqZGFfX2BjaG51fYWMkpicn5+enJiSjIR9dm9qZWJhYWNnbHJ4f4aNk5ebnZ2bmJSPiIJ7dW9qZmRjZGdqb3V7goiOk5eZmpqYlZGMhoB5dG9raGZmZ2pucnh+g4mOkpWXmJeVko6Jg354c29saWhpam1xdXp/hYqOkZSVlZSSj4uGgXx3c3Bta2tsbXB0eHyBhoqNkJKTk5GPjIiEgHt3dHFvbm1ucHN2en6ChoqNj5CQkI6MiYaCfnt3dHJxcHBxc3Z5fICDhomLjY6OjYyJh4SBfXp4dXRzcnN0dnh7foCDhoiKi4uLiomHhYKAfXp4d3Z1dXZ3eHp8f4GDhYeIiYmJiIaFg4F/fXt6eHh3eHh5enx+f4GDhIWGhoaGhYSDgYB/fXx7enp6ent7fH5/gIGCg4OEhISDg4KBgIB/fn19fHx8fX1+fn9/gICBgYGBgYGBgYCAgH9/f39/f39/f39/f38="
+  },
+  "de7d79d94d7c_764B": {
+   "nome": "impacto",
+   "formato": "wav",
+   "bytes": 764,
+   "dados": "data:audio/wav;base64,UklGRvQCAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdACAACAiJCZoKivtrzCx8zQ09XX19fX1dPQzMjDvbewqaKakoqCenJqY1tUTkdCPTg0MS8tLCwsLS8yNTk+Q0lPVlxka3N6goqRmaCnrbO5vsLGyczNz8/PzszKx8O/urWwqaOclY6HgHhxamNdVlFLRkI+Ozg2NTQ0NTY4Oz5CRktQVlxiaW92fYSLkpiepKqvtLi8wMLExsfHxsXEwb67t7OuqaOdl5GKhH13cGpkXllUT0tHREE/Pj08PT0/QUNGSk5SV1xiZ21zeX+GjJKXnaKnq6+ztrm7vb6+vr69u7m2s6+rp6KdmJKNh4F8dnBrZmFcWFRQTUtIR0ZFRUVGR0lMT1JVWV5iZ2xxd3yBh4yRlpqfo6eqrbCytLW2tra1tLKwrquopKCcmJOOiYSAe3ZxbGhkYFxZVlNRUE5NTU1OT1BSVFZZXWBkaGxwdXl+g4eLkJSYm5+ipaepq6ytrq6trayqqKajoJ2alpOPi4aCfnp2cm5rZ2RhXlxaWFdWVlVWVldYWlxeYWNmam1xdHh8f4OHi46RlZeanZ+hoqSlpaWlpaSjoqCenJqXlJGOi4eEgX16d3RwbmtoZmRiYWBfXl5eXl9fYWJkZmhqbG9ydXh7foCDhomMjpGTlZeZmpucnZ2dnZ2cm5qYl5WTkY+MioeFgoB9enh2c3FvbWxqaWhnZ2ZmZmZnaGlqa21ucHJ0dnh6fX+Bg4WHiYuNjpCRkpOUlJWVlZWUlJOSkZCOjYuKiIaEg4F/fXt6eHd1dHNycXBvb29ubm9vb3BxcXJzdXZ3eHp7fX5/gYKEhYaHiImKi4uMjIyMjIyMjIuLioqJiIeGhYSDgoGAf359fHt6enl4eHd3d3d3d3d3d3d4eHl5enp7fHx9fn5/gICBgYKCg4ODhISEhISEhISEhISDg4ODgoKCgYGBgICAgH9/f39/f39+fn5/f39/f39/f38="
+  },
+  "15747e170a67_1644B": {
+   "nome": "voz_hadouken",
+   "formato": "wav",
+   "bytes": 1644,
+   "dados": "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAGAACAo8HU2c+5mHRSNygoNlBylrbN2NTCpYJfQS0nL0VkiKrF1dbKsZBsTDQpKzxYep270NfPu516WD0sKTVNbZCwyNXTxKmIZUcyKjBDYIKkwNHVyrSVclI5LC07VHWXtcvUz72hgF5CMCw1SmiKqsPR0sWsjWtMNi0wQVx9nrrN0sq2mXhYPjAuOlFwkbDG0c6/pYVkSDUuNUhkhaS+zdDFr5FwUjswMUBZeJi1yNDKuJ19XUQ0MDpPbIyqwc7NwKiJaU05MTVGYH+fucnOxbGVdlhAMzM/VnOTr8TNybqhgmNJODI6TWiHpbzKy8Crjm9TPjQ2RV17mbTFy8WzmXtdRTc1P1Nvjqq/ysi7pIdoTjw1Oktkgp+3xsnArZJ0WEI3OERadpSuwcnEtZ2AYko7Nz9Ra4mkusbHu6aLblNAODtKYX2assLHwK+WeV1HOzlDWHKPqbzGw7aghGhPPzk/T2iEn7XDxbyoj3JYRTs8SV55la2+xMCwmX1iTD47Q1ZuiqS4wsK3oohtVEM8QE5lf5qxv8O7qpJ3XUk+PkhcdZCousK/sZyCZ1FCPkRUa4afs7/At6SMcVlHP0FNYnuVrLvAu6yVe2JOQkBIWnKLo7W/vbKehWxWRkBFU2iBmq+7vremj3ZeTEJDTWB4kae3vbqtmIBnUkVCSVhuh5+xu7yyoIlwWkpDRlJmfpaquLy2p5J6Y1BFRE1edI2js7u5rZqDa1dJRElXbIOarbi6sqKMdV9ORkdSZHqRprS5taiVfmdUSUZNXHGInq+3t62ch3BbTUdKVml/lqi0t7Gjj3ljUklJUmJ3jaGwtrSpl4FrWU1JTltvhZqqtLWtnop0YFFKTFZnfJKksbWwpJJ8Z1dNS1JgdImdrLOyqZmEb11QS09bbIGWprGzrZ+Md2RVTU1WZXmOoK2yr6SUgGtbUE1TX3GGmaiwsamah3NhVE5QWmp+kqKtsaygj3toWVBPVmR2ipypr66llYNvX1RQVF9vgpWkra6om4p3ZVhRUlppe46eqq6roJF+bF1UUldjdIeYpayspJeFc2NXUlVfbn+RoKqsp5yMemlcVFRbaHmKmqarqaCSgW9hV1RYY3KElKKpqqSYiHZmW1VXX2x9jpymqqacjn1sX1dWXGd2h5eiqKegk4NzZFpXWmNxgZGepqijmIp5al5YWF9re4uZo6elnI+AcGNbWF1ndYSTn6Wmn5SGdmheWVtjb36NmqOlopiLfG1iW1tga3mIlZ+ko5yQgnNmXlteZ3OCkJuio5+Vh3lrYVxdY258ipefo6CYjH5xZV5dYWp3hZKcoaGbkYR2amFeYGdyf42Yn6GdlYl7b2VfX2RueoiUnKCfmI2BdGlhX2JqdoOPmZ6fmpGFeW1kYGFncX6KlZyenJWKfnJoYmFlbnmFkJmdnZeOgnZsZWJka3WAjJWbnZmRh3twaGNjaHF8h5KZnJqUi4B0a2VkZ254g46WmpqWjoR5b2hlZmt0f4mSmJqYkYh9c2tmZmlxe4WPlpmYk4uBd25oZmhud4GLk5eYlY6Fe3JrZ2hsdH2Hj5WYlpCIf3VuaWhrcXqDjJOWlpKLgnlxa2lqb3d/iJCVlpOOhn10bmpqbXR8hY2SlZSPiYB4cWxrbXJ5gYmQk5SRi4N7dG5sbHB2foaNkpOSjYZ+d3FtbG90e4OKj5KSjoiBenNvbW5zeYCHjZGRj4qEfXZxbm5xd32Eio+RkIyGgHlzcG9xdXuCiI2Pj42Ignx2cnBxdHl/hYqOj42KhH54dHFxc3d9g4iMjo2LhoB7dnNxc3Z7gIaKjY2Lh4J9eHRyc3V5foOIi4yLiIR/enZ0c3V4fIGGiYuLiYWBfHh1dHV3e3+EiIqLiYaDfnp3dXV3en6ChoiKiYeEgHx5dnZ3eX2AhIeJiYeFgX56eHd3eXx/goWHiIeFgn98eXh4eXt+gYSGh4eFg4B9e3l4eXt9gIKFhoaFhIF+fHp5eXp8f4GDhYWFhIKAfXt6ent8foCChISEhIKAfn17e3t8fn+BgoOEg4KBf359fHx8fn+AgYKDg4KBgH59fX19fn+AgYGCgoGBgH9+fn5+fn9/gIGBgYGAgH9/f35+f39/gICAgICAgIB/f39/f39/"
+  }
+ },
+ "sprites": {
+  "ab015fdc0227_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHApuLOf2x41IJRCwaJBbgMp5oloxaMWjBqwagFxFpiE/UfG6aK4aMWjFowasEQsAAAtCzZCEoBiNUAAAAASUVORK5CYII="
+  },
+  "5aaae32f8781_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHArenZf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAplbpNGAREnAAAAAASUVORK5CYII="
+  },
+  "f1c6381cc47f_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAARElEQVR4nGNgGBHApuLOf2x41ALaWfD//38UzaMW4LUAl+EUWTJqAUlg1IJRC0YtgFpiE/UfG6aK4aMWjFowasEQsAAAXr307NkzhPkAAAAASUVORK5CYII="
+  },
+  "e54b0caac4cb_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAARklEQVR4nGNgGBHApuLOf2x41IJRCzDB////sWqiqQW4DCfLklELRoAF2MCoBaMWUKdEtbGJ+o8NU8XwUQtGLRi1YAhYAAAZ6fTsqJDqMAAAAABJRU5ErkJggg=="
+  },
+  "96e842f7997c_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHAKOXEf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAe0++FKDarbcAAAAASUVORK5CYII="
+  },
+  "a020ef0ee9a8_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHAbVXUf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAdUyzTJGoCPIAAAAASUVORK5CYII="
+  },
+  "6c2bb2da8e8b_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBEgYF/Kf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUADYnI3MUe7FAAAAAASUVORK5CYII="
+  },
+  "7bed318c8009_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHg2T6j/9jwqAWjFgwSC3AZTjVLRi0YtWDUglELiAQ2NlH/sWGqGD5qwagFoxYMAQsA9dv+xDiuPgMAAAAASUVORK5CYII="
+  },
+  "5c269843c858_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHgwwmb/9jwqAWjFgwSC3AZTjVLRi0YtWDUglELiAQ2NlH/sWGqGD5qwagFoxYMAQsA6AUO/xT3tFkAAAAASUVORK5CYII="
+  },
+  "9835e858d36b_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAARElEQVR4nGNgGBHApuLOf2x41IJRCwaJBbgMp5olA27BhxMLwHjUgmEcyaMWDAMLwJbYRP3Hhqli+KgFoxaMWjAELAAAO9XtEuCcgTgAAAAASUVORK5CYII="
+  },
+  "d55f246f27a9_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAARElEQVR4nGNgGBHgjpvNf2x41IJRCwaJBbgMp5olA27BhxMLcOJRC4ZJJI9aMAwsAAEbm6j/2DBVDB+1YNSCUQuGgAUAP6gERtVoWpIAAAAASUVORK5CYII="
+  },
+  "f5ce88002b50_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAARElEQVR4nGNgGBHApuLOf2x41IJRCwaJBbgMp5olA27BhxMLUPCoBcMwkkctGAYWgC2xifqPDVPF8FELRi0YtWAIWAAAIx8BKx8N86UAAAAASUVORK5CYII="
+  },
+  "dcb738c4e47e_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAPElEQVR4nGNgGBFg2rRp/7HhUQtGLRgkFuAynGqWjFowasGoBaMWEAlsbKL+Y8NUMXzUglELRi0YAhYAAEi88/xcX68cAAAAAElFTkSuQmCC"
+  },
+  "3744fa871040_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHgREXFf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAzcnumIGBu8sAAAAASUVORK5CYII="
+  },
+  "3199b4a1dac8_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBFgS1TUf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAosLDePyqsYIAAAAASUVORK5CYII="
+  },
+  "859da1790f18_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBFgWkrKf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUA5x++FBF3J8YAAAAASUVORK5CYII="
+  },
+  "1bcb96471dc5_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBGgIiDgPzY8asGoBYPEAlyGU82SUQtGLRi1YNQCIoGNTdR/bJgqho9aMGrBqAVDwAIAV2OYWIw8rVkAAAAASUVORK5CYII="
+  },
+  "a3c9d5cafd6a_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHgxImo/9jwqAWjFgwSC3AZTjVLRi0YtWDUglELiAQ2NlH/sWGqGD5qwagFoxYMAQsAHEUJmyQXjOAAAAAASUVORK5CYII="
+  },
+  "38892ce7602e_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBEgKurEf2x41IJRCwaJBbgMp5oloxaMWjBqwagFRAIbm6j/2DBVDB+1YNSCUQuGgAUAgwnOQJXImrcAAAAASUVORK5CYII="
+  },
+  "94e0a0ce268c_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHg/wKN/9jwqAWjFgwSC3AZTjVLRi0YtWDUglELiAQ2NlH/sWGqGD5qwagFoxYMAQsAD7P2rkbVRF0AAAAASUVORK5CYII="
+  },
+  "cfc1b81edec5_24x32": {
+   "w": 24,
+   "h": 32,
+   "png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAO0lEQVR4nGNgGBHg/6WA/9jwqAWjFgwSC3AZTjVLRi0YtWDUglELiAQ2NlH/sWGqGD5qwagFoxYMAQsA0JInQTVQuB4AAAAASUVORK5CYII="
+  }
+ },
+ "moves": {
+  "parado": {
+   "tipo": "Basicos",
+   "ticks_total": 16,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "ab015fdc0227_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "5aaae32f8781_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "loop",
+   "trechos": [
+    {
+     "de": 0,
+     "ate": 1,
+     "vezes": 0
+    }
+   ],
+   "loop_de": 0,
+   "loop_ate": 1,
+   "input": {
+    "seq": [
+     5
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "afk": {
+   "tipo": "Basicos",
+   "ticks_total": 44,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "f1c6381cc47f_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "e54b0caac4cb_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 2,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "f1c6381cc47f_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 3,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "e54b0caac4cb_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 4,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "ab015fdc0227_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 5,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "96e842f7997c_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "loop",
+   "trechos": [
+    {
+     "de": 0,
+     "ate": 3,
+     "vezes": 3
+    },
+    {
+     "de": 4,
+     "ate": 5,
+     "vezes": 0
+    }
+   ],
+   "loop_de": 4,
+   "loop_ate": 5
+  },
+  "andando_frente": {
+   "tipo": "Basicos",
+   "ticks_total": 12,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "a020ef0ee9a8_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "6c2bb2da8e8b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "loop",
+   "trechos": [
+    {
+     "de": 0,
+     "ate": 1,
+     "vezes": 0
+    }
+   ],
+   "loop_de": 0,
+   "loop_ate": 1,
+   "input": {
+    "seq": [
+     6
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "andando_costas": {
+   "tipo": "Basicos",
+   "ticks_total": 12,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "6c2bb2da8e8b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "a020ef0ee9a8_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "loop",
+   "trechos": [
+    {
+     "de": 0,
+     "ate": 1,
+     "vezes": 0
+    }
+   ],
+   "loop_de": 0,
+   "loop_ate": 1,
+   "input": {
+    "seq": [
+     4
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "agachado": {
+   "tipo": "Basicos",
+   "ticks_total": 6,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 0,
+   "input": {
+    "seq": [
+     2
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "pulando": {
+   "tipo": "Basicos",
+   "ticks_total": 20,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "7bed318c8009_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "5c269843c858_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1,
+   "input": {
+    "seq": [
+     8
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "pulando_frente": {
+   "tipo": "Basicos",
+   "ticks_total": 20,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "7bed318c8009_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "5c269843c858_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1,
+   "input": {
+    "seq": [
+     9
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "pulando_tras": {
+   "tipo": "Basicos",
+   "ticks_total": 20,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "7bed318c8009_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "5c269843c858_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1,
+   "input": {
+    "seq": [
+     7
+    ],
+    "botao": "",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "backdash": {
+   "tipo": "Basicos",
+   "ticks_total": 12,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     4,
+     4
+    ],
+    "botao": "",
+    "janela_ticks": 14,
+    "tolerancia_ticks": 6
+   }
+  },
+  "roll": {
+   "tipo": "Defesa",
+   "ticks_total": 10,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "ESQ",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   }
+  },
+  "roll_back": {
+   "tipo": "Defesa",
+   "ticks_total": 15,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "38892ce7602e_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "38892ce7602e_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 2,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "ab015fdc0227_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": []
+  },
+  "hit_mid": {
+   "tipo": "Dano",
+   "ticks_total": 12,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "dcb738c4e47e_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "sons": [
+      {
+       "id": "15747e170a67_1644B",
+       "vol": 70,
+       "canal": "voz",
+       "quando": "inicio"
+      }
+     ]
+    },
+    {
+     "i": 1,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "dcb738c4e47e_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": []
+  },
+  "caindo_frente": {
+   "tipo": "Dano",
+   "ticks_total": 28,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "3744fa871040_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 20,
+     "camadas": {
+      "personagem": {
+       "sprite": "1bcb96471dc5_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1
+  },
+  "caindo_tras": {
+   "tipo": "Dano",
+   "ticks_total": 28,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "3744fa871040_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 20,
+     "camadas": {
+      "personagem": {
+       "sprite": "1bcb96471dc5_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1
+  },
+  "caindo_imposing": {
+   "tipo": "Dano",
+   "ticks_total": 30,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "859da1790f18_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 20,
+     "camadas": {
+      "personagem": {
+       "sprite": "1bcb96471dc5_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1
+  },
+  "rebatido_parede": {
+   "tipo": "Dano",
+   "ticks_total": 54,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "3744fa871040_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "proximo": {
+      "se": "colisao",
+      "sub": "parede",
+      "espera_ms": 300
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 8,
+     "camadas": {
+      "personagem": {
+       "sprite": "3199b4a1dac8_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 2,
+     "ticks": 10,
+     "camadas": {
+      "personagem": {
+       "sprite": "859da1790f18_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 3,
+     "ticks": 30,
+     "camadas": {
+      "personagem": {
+       "sprite": "1bcb96471dc5_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 3
+  },
+  "rebatido": {
+   "tipo": "Dano",
+   "ticks_total": 26,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "3744fa871040_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "proximo": {
+      "se": "colisao",
+      "sub": "chao",
+      "espera_ms": 0
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 20,
+     "camadas": {
+      "personagem": {
+       "sprite": "1bcb96471dc5_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "trava",
+   "trechos": [],
+   "travar_em": 1
+  },
+  "stun": {
+   "tipo": "Dano",
+   "ticks_total": 12,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "a3c9d5cafd6a_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    },
+    {
+     "i": 1,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "a3c9d5cafd6a_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "repeticao": "loop",
+   "trechos": [
+    {
+     "de": 0,
+     "ate": 1,
+     "vezes": 0
+    }
+   ],
+   "loop_de": 0,
+   "loop_ate": 1
+  },
+  "low_punch": {
+   "tipo": "Padrao",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": [],
+     "sons": [
+      {
+       "id": "63f118203ba4_1004B",
+       "vol": 100,
+       "canal": "sfx",
+       "quando": "inicio"
+      },
+      {
+       "id": "de7d79d94d7c_764B",
+       "vol": 100,
+       "canal": "sfx",
+       "quando": "acertar"
+      },
+      {
+       "id": "de7d79d94d7c_764B",
+       "vol": 50,
+       "canal": "sfx",
+       "quando": "bloqueado"
+      }
+     ]
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "LP",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [],
+   "dano": 5.5,
+   "quick": {
+    "botao": "QP",
+    "corta": "startup",
+    "pulse": 6.5
+   },
+   "hit": {
+    "dx": 30,
+    "dy": 0,
+    "tempo_ticks": 12
+   }
+  },
+  "low_kick": {
+   "tipo": "Padrao",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "LK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "low",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [],
+   "dano": 8.0,
+   "hit": {
+    "dx": 30,
+    "dy": 0,
+    "tempo_ticks": 12
+   }
+  },
+  "high_punch": {
+   "tipo": "Padrao",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": [],
+     "sons": [
+      {
+       "id": "63f118203ba4_1004B",
+       "vol": 100,
+       "canal": "sfx",
+       "quando": "inicio"
+      },
+      {
+       "id": "de7d79d94d7c_764B",
+       "vol": 100,
+       "canal": "sfx",
+       "quando": "acertar"
+      }
+     ]
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "HP",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [
+    {
+     "k": "depois_de",
+     "golpe": "low_punch",
+     "de": 1,
+     "ate": -1,
+     "apos_ticks": 10
+    }
+   ],
+   "magia": false,
+   "ancora": null,
+   "props": [],
+   "dano": 8.0,
+   "quick": {
+    "botao": "QP",
+    "corta": "recovery",
+    "pulse": 10.25
+   },
+   "hit": {
+    "dx": 50,
+    "dy": 0,
+    "tempo_ticks": 16
+   }
+  },
+  "high_kick": {
+   "tipo": "Padrao",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "HK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "overhead",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "queda",
+     "estagio": "frente"
+    }
+   ],
+   "dano": 8.0,
+   "hit": {
+    "dx": 60,
+    "dy": 20,
+    "tempo_ticks": 20
+   }
+  },
+  "blow_off": {
+   "tipo": "Padrao",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     6
+    ],
+    "botao": "BO",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "wall"
+    }
+   ],
+   "dano": 8.0
+  },
+  "bola_de_fogo": {
+   "tipo": "Golpes",
+   "ticks_total": 22,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": [],
+     "sons": [
+      {
+       "id": "15747e170a67_1644B",
+       "vol": 100,
+       "canal": "voz",
+       "quando": "inicio"
+      }
+     ]
+    },
+    {
+     "i": 1,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": {
+       "sprite": "94e0a0ce268c_24x32",
+       "x": 20,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 14,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": [
+      {
+       "k": "solta",
+       "modo": "atravessa",
+       "vx": 320,
+       "vy": 0,
+       "alcance": 0
+      }
+     ]
+    },
+    {
+     "i": 2,
+     "ticks": 12,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": {
+       "sprite": "cfc1b81edec5_24x32",
+       "x": 40,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     2,
+     3,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 6,
+    "active": 4,
+    "recovery": 12
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": true,
+   "ancora": {
+    "x": 20,
+    "y": -26
+   },
+   "props": [],
+   "dano": 14.25,
+   "quick": {
+    "botao": "QP",
+    "corta": "recovery",
+    "pulse": 12.5
+   },
+   "hit": {
+    "dx": 40,
+    "dy": 0,
+    "tempo_ticks": 18
+   }
+  },
+  "bola_parada": {
+   "tipo": "Golpes",
+   "ticks_total": 22,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": {
+       "sprite": "94e0a0ce268c_24x32",
+       "x": 20,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 14,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": [
+      {
+       "k": "solta",
+       "modo": "fica",
+       "vx": 0,
+       "vy": 0,
+       "alcance": 0,
+       "dur_ticks": 90
+      }
+     ]
+    },
+    {
+     "i": 2,
+     "ticks": 12,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": {
+       "sprite": "cfc1b81edec5_24x32",
+       "x": 40,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     2,
+     1,
+     4
+    ],
+    "botao": "HK",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 6,
+    "active": 4,
+    "recovery": 12
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": true,
+   "ancora": {
+    "x": 20,
+    "y": -26
+   },
+   "props": [],
+   "dano": 8.0,
+   "hit": {
+    "dx": 20,
+    "dy": 0,
+    "tempo_ticks": 10
+   }
+  },
+  "golpe_wall": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     6,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "wall"
+    }
+   ],
+   "dano": 8.0
+  },
+  "golpe_ricochete": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     4,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "ricochete"
+    }
+   ],
+   "dano": 8.0
+  },
+  "golpe_stun": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     2,
+     2
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "stun"
+    }
+   ],
+   "dano": 8.0
+  },
+  "golpe_imposing": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     8,
+     2
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "imposing"
+    }
+   ],
+   "dano": 8.0
+  },
+  "golpe_derruba": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     3,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [
+    {
+     "k": "queda",
+     "estagio": "tras"
+    },
+    {
+     "k": "no_recovery"
+    }
+   ],
+   "dano": 8.0
+  }
+ }
+}

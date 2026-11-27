@@ -112,8 +112,8 @@ func achar_som(evento: String, personagem_id: String = "", som_golpe: String = "
 	return _achar_base(PASTA_COMUNS + evento)
 
 
-func tocar(evento: String, personagem_id: String = "", som_golpe: String = "") -> void:
-	_tocar_efeito(achar_som(evento, personagem_id, som_golpe))
+func tocar(evento: String, personagem_id: String = "", som_golpe: String = "", vol: float = 1.0) -> void:
+	_tocar_efeito(achar_som(evento, personagem_id, som_golpe), vol)
 
 
 func tocar_interface(nome: String) -> void:
@@ -297,7 +297,7 @@ func _fade(p: AudioStreamPlayer, alvo: float, parar_no_fim: bool) -> void:
 		t.tween_callback(p.stop)
 
 
-func _tocar_efeito(caminho: String) -> void:
+func _tocar_efeito(caminho: String, vol: float = 1.0) -> void:
 	var stream = _carregar(caminho)
 	if stream == null:
 		return
@@ -307,6 +307,7 @@ func _tocar_efeito(caminho: String) -> void:
 			livre = p
 			break
 	livre.stream = stream
+	livre.volume_db = linear_to_db(clampf(vol, 0.001, 1.0))
 	livre.play()
 
 

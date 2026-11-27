@@ -57,7 +57,6 @@ func _modo_controle() -> bool:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	get_node("/root/Tela").ajustar(self)
 
 
 func _process(delta: float) -> void:
@@ -261,7 +260,7 @@ func _mover(d: int) -> void:
 func _unhandled_input(ev: InputEvent) -> void:
 	var st := ev as InputEventScreenTouch
 	if st != null and st.pressed:
-		_tocar(get_node("/root/Tela").local(st.position))
+		_tocar(st.position)
 		get_viewport().set_input_as_handled()
 		return
 	var dr := ev as InputEventScreenDrag
@@ -405,10 +404,10 @@ func _tocar(p: Vector2) -> void:
 
 func _draw() -> void:
 	var fonte: Font = ThemeDB.fallback_font
-	draw_rect(_area(), COR_FUNDO)
+	draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), COR_FUNDO)
 	# Cabeçalho
-	draw_rect(Rect2(_area().position.x, 0.0, _area().size.x, 84.0), Color(0.07, 0.08, 0.15))
-	draw_rect(Rect2(_area().position.x, 82.0, _area().size.x, 3.0), COR_DESTAQUE)
+	draw_rect(Rect2(0.0, 0.0, VIEW_W, 84.0), Color(0.07, 0.08, 0.15))
+	draw_rect(Rect2(0.0, 82.0, VIEW_W, 3.0), COR_DESTAQUE)
 	_engrenagem(Vector2(52.0, 42.0), 18.0)
 	draw_string(fonte, Vector2(86.0, 54.0), _t("cfg_titulo").to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 30, COR_TEXTO)
 	_cats()
@@ -507,7 +506,7 @@ func _seletor(r: Rect2, cy: float, valor: String, foco: bool) -> void:
 
 func _rodape() -> void:
 	var fonte: Font = ThemeDB.fallback_font
-	draw_rect(Rect2(_area().position.x, 500.0, _area().size.x, 40.0), Color(0.07, 0.08, 0.15))
+	draw_rect(Rect2(0.0, 500.0, VIEW_W, 40.0), Color(0.07, 0.08, 0.15))
 	if not _modo_controle():
 		draw_rect(_rect_voltar, Color(0.14, 0.12, 0.1))
 		draw_rect(_rect_voltar, COR_DESTAQUE, false, 2.0)
@@ -522,8 +521,3 @@ func _rodape() -> void:
 		var rot: String = _t(str(par[1]))
 		draw_string(fonte, Vector2(x + 34.0, 526.0), rot, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, COR_TEXTO)
 		x += 70.0 + rot.length() * 8.0
-
-
-# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
-func _area() -> Rect2:
-	return get_node("/root/Tela").area()

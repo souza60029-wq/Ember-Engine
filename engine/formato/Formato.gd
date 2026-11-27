@@ -90,6 +90,11 @@ static func padrao_golpe() -> Dictionary:
 		"nivel": "mid",
 		"comando": "",
 		"condicoes": [],
+		"input": {},
+		"quick": {},
+		"props": [],
+		"hit": {},
+		"dano_pct": -1.0,
 		"forge_move": "",
 		"sprite_impacto": -1,
 		"sons_quadros": [],
@@ -101,6 +106,61 @@ static func padrao_golpe() -> Dictionary:
 			"bloqueio": {"frames": [], "som": ""}
 		}
 	}
+
+
+# ---------- Dados que vêm do .ember (Forge v2) ----------
+
+const BOTOES_INPUT := ["", "LP", "LK", "HP", "HK", "BO", "ESQ"]
+const BOTOES_QUICK := ["QP", "QK", "QB"]
+const PROPS_VALIDAS := ["wall", "ricochete", "stun", "imposing", "no_recovery", "queda"]
+
+
+# Comando de um move: {seq: [1-9], botao, janela (ticks), tol (ticks)}. Vazio = a engine decide.
+static func normalizar_input(v) -> Dictionary:
+	if typeof(v) != TYPE_DICTIONARY:
+		return {}
+	var seq: Array = []
+	var bruto = v.get("seq", [])
+	if typeof(bruto) == TYPE_ARRAY:
+		for d in bruto:
+			var n: int = int(d)
+			if n >= 1 and n <= 9 and seq.size() < 8:
+				seq.append(n)
+	var botao: String = str(v.get("botao", ""))
+	if not BOTOES_INPUT.has(botao):
+		botao = ""
+	if seq.is_empty() and botao == "":
+		return {}
+	return {"seq": seq, "botao": botao,
+		"janela": clampi(int(v.get("janela", v.get("janela_ticks", 24))), 1, 120),
+		"tol": clampi(int(v.get("tol", v.get("tolerancia_ticks", 6))), 0, 30)}
+
+
+# Quick do golpe: {botao: QP|QK|QB, corta: startup|recovery, pulse: % da barra}.
+static func _quick(v) -> Dictionary:
+	if typeof(v) != TYPE_DICTIONARY or not BOTOES_QUICK.has(str(v.get("botao", ""))):
+		return {}
+	return {"botao": str(v["botao"]), "corta": "recovery" if str(v.get("corta", "startup")) == "recovery" else "startup",
+		"pulse": clampf(float(v.get("pulse", 0.0)), 0.0, 100.0)}
+
+
+# Propriedades do golpe: [{k, estagio}].
+static func _props(v) -> Array:
+	var r: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return r
+	for p in v:
+		if typeof(p) == TYPE_DICTIONARY and PROPS_VALIDAS.has(str(p.get("k", ""))):
+			r.append({"k": str(p["k"]), "estagio": "tras" if str(p.get("estagio", "frente")) == "tras" else "frente"})
+	return r
+
+
+# Bloco Hit: {dx, dy, tempo (ticks)}. Vazio = padrões da engine.
+static func _hit(v) -> Dictionary:
+	if typeof(v) != TYPE_DICTIONARY:
+		return {}
+	return {"dx": clampf(float(v.get("dx", 0.0)), -600.0, 600.0), "dy": clampf(float(v.get("dy", 0.0)), -300.0, 600.0),
+		"tempo": clampi(int(v.get("tempo", v.get("tempo_ticks", 16))), 1, 300)}
 
 
 # Golpe fixo de um botão (LP, LK, HP, HK ou BO).
@@ -152,8 +212,14 @@ static func normalizar_golpe(g_in: Dictionary) -> Dictionary:
 	if typeof(r["condicoes"]) == TYPE_ARRAY:
 		for c in r["condicoes"]:
 			if typeof(c) == TYPE_DICTIONARY and ["no_ar", "no_chao", "agachado", "depois_de", "depois_de_acertar"].has(str(c.get("k", ""))):
-				conds.append({"k": str(c["k"]), "golpe": str(c.get("golpe", ""))})
+				conds.append({"k": str(c["k"]), "golpe": str(c.get("golpe", "")), "de": maxi(int(c.get("de", 0)), 0),
+					"ate": int(c.get("ate", -1)), "apos_ticks": maxi(int(c.get("apos_ticks", 0)), 0)})
 	r["condicoes"] = conds
+	r["input"] = normalizar_input(r["input"])
+	r["quick"] = _quick(r["quick"])
+	r["props"] = _props(r["props"])
+	r["hit"] = _hit(r["hit"])
+	r["dano_pct"] = clampf(float(r["dano_pct"]), -1.0, 100.0)
 	r["sprite_impacto"] = clampi(int(r["sprite_impacto"]), -1, MAX_QUADROS)
 
 	var hb = r["hitbox"] if typeof(r["hitbox"]) == TYPE_DICTIONARY else {}

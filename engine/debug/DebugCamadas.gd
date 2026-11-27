@@ -47,7 +47,7 @@ var _arrastou: bool = false
 func abrir(menu: Variant) -> void:
 	_menu = menu
 	_toque = DisplayServer.is_touchscreen_available()
-	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
 	position = Vector2.ZERO
 	size = Vector2(VIEW_W, VIEW_H)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -199,13 +199,13 @@ func _input(ev: InputEvent) -> void:
 		var t := ev as InputEventScreenTouch
 		if t != null:
 			if t.pressed:
-				_dedos[t.index] = get_node("/root/Tela").local(t.position)
+				_dedos[t.index] = t.position
 				if _dedos.size() == 1:
-					_acao_toque = _acao_em(get_node("/root/Tela").local(t.position))
-					_toque_pos = get_node("/root/Tela").local(t.position)
+					_acao_toque = _acao_em(t.position)
+					_toque_pos = t.position
 					_arrastou = false
 			else:
-				if _dedos.size() == 1 and _acao_toque != "" and not _arrastou and _acao_em(get_node("/root/Tela").local(t.position)) == _acao_toque:
+				if _dedos.size() == 1 and _acao_toque != "" and not _arrastou and _acao_em(t.position) == _acao_toque:
 					_executar(_acao_toque)
 				if _dedos.size() <= 1:
 					_acao_toque = ""
@@ -215,9 +215,9 @@ func _input(ev: InputEvent) -> void:
 			return
 		var d := ev as InputEventScreenDrag
 		if d != null:
-			_dedos[d.index] = get_node("/root/Tela").local(d.position)
+			_dedos[d.index] = d.position
 			if _acao_toque != "":
-				if get_node("/root/Tela").local(d.position).distance_to(_toque_pos) > 14.0:
+				if d.position.distance_to(_toque_pos) > 14.0:
 					_arrastou = true
 				get_viewport().set_input_as_handled()
 				return

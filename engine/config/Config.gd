@@ -238,7 +238,7 @@ func botao_fisico_apertado(dev: int, botao: String) -> bool:
 
 # Botões de luta apertados no controle "dev", pelo mapa do jogador.
 func entrada_luta(dev: int, jogador: int) -> Dictionary:
-	var r := {"LP": false, "LK": false, "HP": false, "HK": false, "BO": false, "ESQ": false, "REVP": false, "REVK": false}
+	var r := {"LP": false, "LK": false, "HP": false, "HK": false, "BO": false, "ESQ": false, "QP": false, "QK": false, "QB": false}
 	var m: Dictionary = mapas[jogador]
 	for b in BOTOES_FISICOS:
 		var f: String = str(m.get(b, ""))

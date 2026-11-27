@@ -51,7 +51,6 @@ func _som(nome: String, reserva: String) -> void:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	get_node("/root/Tela").ajustar(self)
 	_itens = get_node("/root/Catalogo").lista()
 	var n: int = _itens.size()
 	_cols = COLUNAS
@@ -107,8 +106,8 @@ func _draw() -> void:
 	if fundo != null:
 		draw_texture_rect(fundo, Rect2(0.0, 0.0, VIEW_W, VIEW_H), false)
 	else:
-		draw_rect(_area(), Color(0.16, 0.07, 0.05))
-		draw_rect(Rect2(_area().position.x, 0.0, _area().size.x, 70.0), Color(0.0, 0.0, 0.0, 0.35))
+		draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color(0.16, 0.07, 0.05))
+		draw_rect(Rect2(0.0, 0.0, VIEW_W, 70.0), Color(0.0, 0.0, 0.0, 0.35))
 	_cabecalho()
 	if _itens.is_empty():
 		_texto_c(Rect2(0.0, 220.0, VIEW_W, 40.0), _t("sel_vazio"), 18, Color(1.0, 0.85, 0.5))
@@ -256,7 +255,7 @@ func _arte(item: Dictionary, rel: String) -> Texture2D:
 func _unhandled_input(ev: InputEvent) -> void:
 	var st := ev as InputEventScreenTouch
 	if st != null and st.pressed:
-		_tocar(get_node("/root/Tela").local(st.position))
+		_tocar(st.position)
 		get_viewport().set_input_as_handled()
 		return
 	var bt := ev as InputEventJoypadButton
@@ -363,8 +362,3 @@ func _voltar() -> void:
 		return
 	_saindo = true
 	_navegacao().ir_para_menu()
-
-
-# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
-func _area() -> Rect2:
-	return get_node("/root/Tela").area()

@@ -23,7 +23,6 @@ var _saindo := false
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	get_node("/root/Tela").ajustar(self)
 	if ResourceLoader.exists(LOGO):
 		_logo = load(LOGO) as Texture2D
 	if ResourceLoader.exists(FUNDO):
@@ -47,7 +46,7 @@ func _alpha() -> float:
 
 
 func _draw() -> void:
-	draw_rect(_area(), Color.BLACK)
+	draw_rect(Rect2(0.0, 0.0, VIEW_W, VIEW_H), Color.BLACK)
 	var a := _alpha()
 	if _fundo != null:
 		draw_texture_rect(_fundo, Rect2(0.0, 0.0, VIEW_W, VIEW_H), false, Color(1.0, 1.0, 1.0, a))
@@ -73,8 +72,3 @@ func _ir_titulo() -> void:
 		return
 	_saindo = true
 	get_tree().change_scene_to_file(CENA_TITULO)
-
-
-# Área visível inteira (cobre as bordas em telas mais largas ou mais altas que 16:9).
-func _area() -> Rect2:
-	return get_node("/root/Tela").area()

@@ -16,8 +16,9 @@ class BotaoVoltar extends Control:
 	signal pressionado
 
 	func _ready() -> void:
-		position = Vector2(10, 8)
-		size = Vector2(110, 34)
+		# Mesmo tamanho do RESET (Luta.gd) e na mesma linha, no centro inferior da tela.
+		position = Vector2(356, 500)
+		size = Vector2(120, 34)
 		mouse_filter = Control.MOUSE_FILTER_STOP
 
 	func _draw() -> void:
