@@ -459,10 +459,39 @@
   },
   "andando_frente": {
    "tipo": "Basicos",
-   "ticks_total": 12,
+   "ticks_total": 20,
    "frames": [
     {
      "i": 0,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "a020ef0ee9a8_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup"
+    },
+    {
+     "i": 1,
      "ticks": 6,
      "camadas": {
       "personagem": {
@@ -487,10 +516,11 @@
         }
        ]
       }
-     }
+     },
+     "fase": "active"
     },
     {
-     "i": 1,
+     "i": 2,
      "ticks": 6,
      "camadas": {
       "personagem": {
@@ -515,19 +545,58 @@
         }
        ]
       }
-     }
+     },
+     "fase": "active"
+    },
+    {
+     "i": 3,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "6c2bb2da8e8b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery"
     }
    ],
    "repeticao": "loop",
    "trechos": [
     {
-     "de": 0,
-     "ate": 1,
-     "vezes": 0
+     "de": 1,
+     "ate": 2,
+     "vezes": 0,
+     "modo": "normal",
+     "fase": "active",
+     "parar_se": [
+      {
+       "k": "analogico_diferente",
+       "valor": 6
+      }
+     ],
+     "saida": "fim_do_ciclo"
     }
    ],
-   "loop_de": 0,
-   "loop_ate": 1,
+   "loop_de": 1,
+   "loop_ate": 2,
    "input": {
     "seq": [
      6
@@ -535,11 +604,20 @@
     "botao": "",
     "janela_ticks": 20,
     "tolerancia_ticks": 6
+   },
+   "fases": true,
+   "nao_quebra": [
+    "low_punch"
+   ],
+   "derivado_60fps": {
+    "startup": 4,
+    "active": 12,
+    "recovery": 4
    }
   },
   "andando_costas": {
    "tipo": "Basicos",
-   "ticks_total": 12,
+   "ticks_total": 18,
    "frames": [
     {
      "i": 0,
@@ -596,18 +674,54 @@
        ]
       }
      }
+    },
+    {
+     "i": 2,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "6c2bb2da8e8b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     }
     }
    ],
    "repeticao": "loop",
    "trechos": [
     {
      "de": 0,
-     "ate": 1,
-     "vezes": 0
+     "ate": 2,
+     "vezes": 0,
+     "modo": "vai_e_volta",
+     "parar_se": [
+      {
+       "k": "analogico_diferente",
+       "valor": 4
+      }
+     ],
+     "saida": "imediata"
     }
    ],
    "loop_de": 0,
-   "loop_ate": 1,
+   "loop_ate": 2,
    "input": {
     "seq": [
      4

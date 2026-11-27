@@ -142,6 +142,15 @@ var _ricochete: bool = false        # vai bater na parede e voltar
 var _ricochete_volta: bool = false  # já está voltando: animação rebatido
 var _wall_prox: float = 0.0         # 0 a 1: quão perto da parede estava (altura da volta do ricochete)
 var _queda_tras: bool = false
+# Cursor de animação dos moves com "parar_se" (andando_*, correndo...): anda frame a frame lendo o analógico.
+var _cur_i: int = 0
+var _cur_t: int = 0
+var _cur_est: Dictionary = {"pass": {}, "dir": {}}
+var _cur_fim: bool = false          # a animação terminou (o último frame fica parado)
+var _cur_forcar: bool = false       # sair do loop na hora (trocou de movimento ou golpe em nao_quebra)
+var _manter: String = ""            # movimento com fases que está tocando o recovery antes de sair
+var _pendente: Dictionary = {}      # golpe que espera o recovery do movimento (nao_quebra)
+var _pendente_t: int = 0
 var carga_tras_t: float = 0.0
 var carga_baixo_t: float = 0.0
 var frames_desde_baixo: int = 999
@@ -216,6 +225,8 @@ func tem_forge() -> bool:
 
 # Move do Forge que a engine toca agora, com as reservas obrigatórias do formato.
 func nome_move() -> String:
+	if _manter != "" and (estado == Estado.PARADO or estado == Estado.ANDANDO or estado == Estado.DEFENDENDO):
+		return _manter
 	var frente: float = 1.0 if direita else -1.0
 	match estado:
 		Estado.ATACANDO:
@@ -322,6 +333,8 @@ func quadro_forge() -> Dictionary:
 	if n == 0 and (m.get("cron_loop", []) as Array).is_empty():
 		return {}
 	var frames: Array = m["frames"]
+	if bool(m.get("dinamico", false)) and estado != Estado.ATACANDO:
+		return frames[clampi(_cur_i if nome == _anim_nome else 0, 0, frames.size() - 1)]
 	if _wall and nome == "rebatido_parede":
 		var seg: int = _frame_espera(frames, "parede")
 		if seg >= 0:
@@ -631,19 +644,102 @@ func _limpar_reacoes() -> void:
 	arremessado = false
 
 
-# Há quantos ticks a animação atual toca (reinicia quando troca de animação) e sons do início do frame.
+# Há quantos ticks a animação atual toca (reinicia quando troca de animação), cursor dos moves com
+# "parar_se" e sons do início do frame.
 func _atualizar_anim() -> void:
 	if forge.is_empty():
 		return
+	if _manter != "" and _cur_fim:
+		_manter = ""
 	var nm: String = nome_move()
 	if nm != _anim_nome:
-		_anim_nome = nm
-		_anim_t = 0
+		var ant: Dictionary = {} if _anim_nome == "" else move_resolvido(_anim_nome)
+		var livre: bool = estado == Estado.PARADO or estado == Estado.ANDANDO or estado == Estado.DEFENDENDO
+		if _manter == "" and livre and not _cur_fim and bool(ant.get("dinamico", false)) and bool(ant.get("fases", false)):
+			# Saiu de um movimento com fases (ex.: soltou o analógico): toca o recovery antes de seguir.
+			_manter = _anim_nome
+			_cur_forcar = true
+			nm = _anim_nome
+		else:
+			_manter = ""
+			_anim_nome = nm
+			_anim_t = 0
+			_cur_i = 0
+			_cur_t = 0
+			_cur_est = {"pass": {}, "dir": {}}
+			_cur_fim = false
+			_cur_forcar = false
 	else:
 		_anim_t += 1
+		_cur_passo()
 	if _wall_pousou and _wall_pouso_t == 0:
 		_wall_pouso_t = maxi(_anim_t, 1)
 	_sons_forge()
+
+
+# Um tick do cursor: ao acabar os ticks do frame, escolhe o próximo (trechos, vai_e_volta, parar_se).
+func _cur_passo() -> void:
+	var m: Dictionary = move_resolvido(_anim_nome)
+	if m.is_empty() or not bool(m.get("dinamico", false)) or _cur_fim:
+		return
+	var frames: Array = m["frames"]
+	_cur_i = clampi(_cur_i, 0, frames.size() - 1)
+	_cur_t += 1
+	if _cur_t < int(frames[_cur_i]["ticks"]):
+		return
+	var trechos: Array = m["trechos"]
+	var k: int = Formato.trecho_de(trechos, _cur_i)
+	var parar: bool = k >= 0 and _parar_ok(trechos[k]["parar"])
+	var prox: int = Formato.proximo_frame(_cur_i, frames.size(), trechos, _cur_est, parar, _cur_forcar)
+	_cur_t = 0
+	if prox < 0:
+		_cur_fim = true
+	else:
+		_cur_i = prox
+
+
+# Condições "parar_se" do trecho (analógico relativo ao lado do personagem, botões, colisão, acerto).
+func _parar_ok(lista: Array) -> bool:
+	var dig: int = int(_hist[_hist.size() - 1]) if not _hist.is_empty() else 5
+	for c in lista:
+		var v: String = str(c["valor"])
+		match str(c["k"]):
+			"analogico_igual":
+				if dig == v.to_int():
+					return true
+			"analogico_diferente":
+				if dig != v.to_int():
+					return true
+			"botao_apertado":
+				if bool(_bt_antes.get(v, false)):
+					return true
+			"botao_solto":
+				if not bool(_bt_antes.get(v, false)):
+					return true
+			"colisao":
+				if v == "parede" and (pos.x <= LIMITE_ESQ + 1.0 or pos.x >= LIMITE_DIR - 1.0):
+					return true
+				if v == "chao" and not no_chao:
+					return true
+				if v == "oponente" and oponente != null and absf(pos.x - oponente.pos.x) < (largura_corpo() + oponente.largura_corpo()) * 0.5:
+					return true
+			"acertou":
+				if golpe_acertou:
+					return true
+	return false
+
+
+# Há um movimento com fases em andamento que não aceita ser quebrado por este golpe (nao_quebra)?
+func _espera_recovery(g: Dictionary) -> bool:
+	if _anim_nome == "" or _cur_fim:
+		return false
+	var m: Dictionary = move_resolvido(_anim_nome)
+	if not bool(m.get("fases", false)) or not bool(m.get("dinamico", false)):
+		return false
+	for nome in m.get("nao_quebra", []):
+		if _eh_golpe(g, str(nome)):
+			return true
+	return false
 
 
 func _sons_forge() -> void:
@@ -750,6 +846,8 @@ func resetar(x: float, olhando_direita: bool) -> void:
 	_anim_t = 0
 	_som_nome = ""
 	_som_idx = -1
+	_manter = ""
+	_pendente = {}
 	_limpar_reacoes()
 
 # ---------- Entrada e estados ----------
@@ -829,10 +927,24 @@ func _estado_livre(dir: Vector2, apertados: Dictionary, atras: bool, cima: bool)
 	var pulos_arquivo: bool = not (forge.get("pulos", {}) as Dictionary).is_empty()
 	if _modo_arquivo:
 		# Formato 2: o comando de cada golpe e de cada pulo vem do arquivo.
+		if not _pendente.is_empty():
+			# Golpe que esperava o recovery do movimento (nao_quebra): sai quando o recovery acaba.
+			_pendente_t += 1
+			_cur_forcar = true
+			if _cur_fim or _pendente_t > 90 or not _espera_recovery(_pendente["g"]):
+				var ped: Dictionary = _pendente
+				_pendente = {}
+				_executar_arquivo(ped)
+				return
 		var sel: Dictionary = _escolher_golpe_arquivo(apertados)
 		if not sel.is_empty():
-			_executar_arquivo(sel)
-			return
+			if _pendente.is_empty() and _espera_recovery(sel["g"]):
+				_pendente = sel
+				_pendente_t = 0
+				_cur_forcar = true
+			else:
+				_executar_arquivo(sel)
+				return
 		if pulos_arquivo and not no_chao:
 			var pulo: String = _escolher_pulo()
 			if pulo != "":
@@ -1333,6 +1445,8 @@ func receber_acerto(g: Dictionary, dano: float) -> void:
 	reacao_nivel = str(g.get("nivel", "mid"))
 	var era_caido: bool = estado == Estado.CAIDO
 	_limpar_reacoes()
+	_pendente = {}
+	_manter = ""
 	vida = maxf(0.0, vida - dano)
 	golpe_atual = {}
 	bloqueado = false

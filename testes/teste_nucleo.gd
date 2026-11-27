@@ -539,3 +539,22 @@ func _testar_forge_v2() -> void:
 			parede = g
 	_checar("bola_de_fogo: 2,3,6 + HP, quick QP e dano em %", (bola["input"]["seq"] as Array).size() == 3 and str(bola["input"]["botao"]) == "HP" and str(bola["quick"]["botao"]) == "QP" and absf(float(bola["dano_pct"]) - 14.25) < 0.001)
 	_checar("golpe_wall tem a prop wall", not parede.is_empty() and str(parede["props"][0]["k"]) == "wall")
+	var anda: Dictionary = per["forge"]["moves"]["andando_frente"]
+	_checar("andando_frente: fases, parar_se e nao_quebra", bool(anda["fases"]) and bool(anda["dinamico"]) and (anda["nao_quebra"] as Array).has("low_punch"))
+	_checar("andando_costas: ida e volta com parar_se", bool(per["forge"]["moves"]["andando_costas"]["dinamico"]))
+
+	# Passo dos trechos (loop avançado)
+	var tr: Array = [{"de": 0, "ate": 2, "vezes": 2, "modo": "vai_e_volta", "saida": "fim_do_ciclo", "parar": []}]
+	var est := {"pass": {}, "dir": {}}
+	var seq: Array = [0]
+	var i: int = 0
+	while i >= 0 and seq.size() < 20:
+		i = Formato.proximo_frame(i, 3, tr, est, false)
+		if i >= 0:
+			seq.append(i)
+	_checar("vai e volta: 0 1 2 1 0 1 2 1 0 (2 idas e voltas)", seq == [0, 1, 2, 1, 0, 1, 2, 1, 0])
+	var tr2: Array = [{"de": 1, "ate": 2, "vezes": 0, "modo": "normal", "saida": "fim_do_ciclo", "parar": []}]
+	var e2 := {"pass": {}, "dir": {}}
+	_checar("parar_se termina a passada antes de sair (fim_do_ciclo)", Formato.proximo_frame(1, 4, tr2, e2, true) == 2 and Formato.proximo_frame(2, 4, tr2, e2, true) == 3)
+	tr2[0]["saida"] = "imediata"
+	_checar("saida imediata sai no fim do frame", Formato.proximo_frame(1, 4, tr2, {"pass": {}, "dir": {}}, true) == 3)

@@ -328,47 +328,53 @@ static func _sons_frame(v: Variant, sons_arq: Dictionary) -> Array:
 	return r
 
 
-# Repetições do move já com os índices desta lista de frames: [{de, ate, vezes}].
+# Repetições do move já com os índices desta lista de frames:
+# [{de, ate, vezes, modo (normal|vai_e_volta), saida (fim_do_ciclo|imediata), parar: [{k, valor}]}].
 static func _trechos(v: Variant, mapa: Dictionary) -> Array:
 	var r: Array = []
 	if typeof(v) != TYPE_ARRAY:
 		return r
 	for t in v:
 		if typeof(t) == TYPE_DICTIONARY and mapa.has(int(t.get("de", -1))) and mapa.has(int(t.get("ate", -1))):
-			r.append({"de": int(mapa[int(t["de"])]), "ate": int(mapa[int(t["ate"])]), "vezes": maxi(int(t.get("vezes", 1)), 0)})
+			var parar: Array = []
+			if typeof(t.get("parar_se", [])) == TYPE_ARRAY:
+				for c in t["parar_se"]:
+					if typeof(c) == TYPE_DICTIONARY and ["analogico_igual", "analogico_diferente", "botao_apertado", "botao_solto", "colisao", "acertou"].has(str(c.get("k", ""))):
+						parar.append({"k": str(c["k"]), "valor": str(c.get("valor", ""))})
+			r.append({"de": int(mapa[int(t["de"])]), "ate": int(mapa[int(t["ate"])]), "vezes": maxi(int(t.get("vezes", 1)), 0),
+				"modo": "vai_e_volta" if str(t.get("modo", "normal")) == "vai_e_volta" else "normal",
+				"saida": "imediata" if str(t.get("saida", "fim_do_ciclo")) == "imediata" else "fim_do_ciclo", "parar": parar})
 	return r
 
 
-# Um índice de frame por tick, já com as repetições. "loop" é a parte que repete para sempre (vezes 0);
-# travar_em segura o último frame. Ver "Repetições e fim da animação" no EMBER_FORMAT.md.
+# Um índice de frame por tick, já com as repetições (sem olhar o analógico: "parar_se" é resolvido na hora,
+# pela engine, nos moves "dinamico"). "loop" é a parte que repete para sempre (vezes 0); travar_em segura o
+# último frame. Ver "Repetições e fim da animação" no EMBER_FORMAT.md e o adendo de loop e fases.
 static func _linha_do_tempo(frames: Array, trechos: Array, travar: int) -> Dictionary:
 	var cron: Array = []
-	var contador := {}
+	var estado := {"pass": {}, "dir": {}}
 	var i: int = 0
 	var visitas: int = 0
-	while i < frames.size() and visitas < 600 and cron.size() < 1200:
+	while i >= 0 and i < frames.size() and visitas < 800 and cron.size() < 1200:
 		visitas += 1
-		for k in range(int(frames[i]["ticks"])):
+		var k: int = Formato.trecho_de(trechos, i)
+		if k >= 0 and int(trechos[k]["vezes"]) == 0 and i == int(trechos[k]["de"]):
+			# entrou num trecho infinito: um ciclo dele repete para sempre
+			var t: Dictionary = trechos[k]
+			var ordem: Array = range(int(t["de"]), int(t["ate"]) + 1)
+			if str(t["modo"]) == "vai_e_volta":
+				for j in range(int(t["ate"]) - 1, int(t["de"]), -1):
+					ordem.append(j)
+			var lp: Array = []
+			for j in ordem:
+				for q in range(int(frames[j]["ticks"])):
+					lp.append(j)
+			return {"cron": cron, "loop": lp}
+		for q in range(int(frames[i]["ticks"])):
 			cron.append(i)
 		if i == travar:
 			break
-		var tr: Dictionary = {}
-		for t in trechos:
-			if int(t["ate"]) == i:
-				tr = t
-				break
-		if tr.is_empty():
-			i += 1
-			continue
-		if int(tr["vezes"]) == 0:
-			var lp: Array = []
-			for j in range(int(tr["de"]), i + 1):
-				for k in range(int(frames[j]["ticks"])):
-					lp.append(j)
-			return {"cron": cron.slice(0, maxi(cron.size() - lp.size(), 0)), "loop": lp}
-		var c: int = int(contador.get(i, 0)) + 1
-		contador[i] = c
-		i = int(tr["de"]) if c < int(tr["vezes"]) else i + 1
+		i = Formato.proximo_frame(i, frames.size(), trechos, estado, false)
 	return {"cron": cron, "loop": []}
 
 
@@ -458,9 +464,18 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 				solta = int(fr2["i"])
 	# Repetições (trechos), travar_em e loop infinito. Sem esses campos: padrão do formato (EM_CICLO).
 	var tem_rep: bool = m.has("trechos") or m.has("travar_em") or m.has("repeticao")
+	var trechos: Array = _trechos(m.get("trechos", []), mapa)
+	var dinamico: bool = false
+	for tr in trechos:
+		if not (tr["parar"] as Array).is_empty():
+			dinamico = true
+	var nao_quebra: Array = []
+	if typeof(m.get("nao_quebra", [])) == TYPE_ARRAY:
+		for nq in m["nao_quebra"]:
+			nao_quebra.append(str(nq))
 	var linha: Dictionary = {"cron": cron, "loop": []}
 	if tem_rep:
-		linha = _linha_do_tempo(frames, _trechos(m.get("trechos", []), mapa), int(mapa.get(int(m.get("travar_em", -1)), -1)))
+		linha = _linha_do_tempo(frames, trechos, int(mapa.get(int(m.get("travar_em", -1)), -1)))
 	var props: Array = Formato._props(m.get("props", []))
 	var dano: float = clampf(float(m.get("dano", -1.0)), -1.0, 100.0)
 	return {
@@ -472,6 +487,10 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 		"cron": linha["cron"],
 		"cron_loop": linha["loop"],
 		"usa_trechos": tem_rep,
+		"trechos": trechos,
+		"dinamico": dinamico,           # tem "parar_se": a engine anda frame a frame (cursor)
+		"fases": bool(m.get("fases", false)),
+		"nao_quebra": nao_quebra,
 		"input": Formato.normalizar_input(m.get("input", {})),
 		"quick": Formato._quick(m.get("quick", {})),
 		"props": props,

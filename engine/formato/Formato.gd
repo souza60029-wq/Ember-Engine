@@ -163,6 +163,56 @@ static func _hit(v) -> Dictionary:
 		"tempo": clampi(int(v.get("tempo", v.get("tempo_ticks", 16))), 1, 300)}
 
 
+# ---------- Trechos (repetições) da animação ----------
+
+# Índice, em "trechos", do trecho que contém o frame i (-1 = nenhum).
+static func trecho_de(trechos: Array, i: int) -> int:
+	for k in range(trechos.size()):
+		if i >= int(trechos[k]["de"]) and i <= int(trechos[k]["ate"]):
+			return k
+	return -1
+
+
+# Próximo frame depois de terminar os ticks do frame i (-1 = fim da animação). "estado" guarda as
+# passadas e a direção de cada trecho ({"pass": {}, "dir": {}}) e zera quando o move começa.
+# parar = alguma condição "parar_se" verdadeira; forcar = sair do loop na hora (nao_quebra, troca de estado).
+static func proximo_frame(i: int, n: int, trechos: Array, estado: Dictionary, parar: bool, forcar: bool = false) -> int:
+	var k: int = trecho_de(trechos, i)
+	if k < 0:
+		return i + 1 if i + 1 < n else -1
+	var t: Dictionary = trechos[k]
+	var de: int = int(t["de"])
+	var ate: int = int(t["ate"])
+	var vezes: int = int(t["vezes"])
+	var saida: int = ate + 1 if ate + 1 < n else -1
+	if forcar or (parar and str(t["saida"]) == "imediata"):
+		estado["dir"][k] = 1
+		return saida
+	var passadas: Dictionary = estado["pass"]
+	var dirs: Dictionary = estado["dir"]
+	if str(t["modo"]) == "vai_e_volta" and ate > de:
+		if int(dirs.get(k, 1)) == 1:
+			if i < ate:
+				return i + 1
+			if parar:
+				return saida
+			dirs[k] = -1
+			return i - 1
+		if i > de:
+			return i - 1
+		passadas[k] = int(passadas.get(k, 0)) + 1
+		dirs[k] = 1
+		if parar or (vezes > 0 and int(passadas[k]) >= vezes):
+			return saida
+		return i + 1
+	if i < ate:
+		return i + 1
+	passadas[k] = int(passadas.get(k, 0)) + 1
+	if parar or (vezes > 0 and int(passadas[k]) >= vezes):
+		return saida
+	return de
+
+
 # Golpe fixo de um botão (LP, LK, HP, HK ou BO).
 static func golpe_base(botao: String) -> Dictionary:
 	if not BASE.has(botao):
