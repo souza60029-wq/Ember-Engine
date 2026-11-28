@@ -389,7 +389,7 @@ static func _trechos(v: Variant, mapa: Dictionary) -> Array:
 		if typeof(t) == TYPE_DICTIONARY and mapa.has(int(t.get("de", -1))) and mapa.has(int(t.get("ate", -1))):
 			var parar: Array = []
 			if typeof(t.get("parar_se", [])) == TYPE_ARRAY:
-				for c in t["parar_se"]:
+				for c in t.get("parar_se", []):
 					if typeof(c) == TYPE_DICTIONARY and ["analogico_igual", "analogico_diferente", "botao_apertado", "botao_solto", "colisao", "acertou"].has(str(c.get("k", ""))):
 						parar.append({"k": str(c["k"]), "valor": str(c.get("valor", ""))})
 			r.append({"de": int(mapa[int(t["de"])]), "ate": int(mapa[int(t["ate"])]), "vezes": maxi(int(t.get("vezes", 1)), 0),
@@ -525,7 +525,7 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 			dinamico = true
 	var nao_quebra: Array = []
 	if typeof(m.get("nao_quebra", [])) == TYPE_ARRAY:
-		for nq in m["nao_quebra"]:
+		for nq in m.get("nao_quebra", []):
 			nao_quebra.append(str(nq))
 	var linha: Dictionary = {"cron": cron, "loop": []}
 	if tem_rep:
