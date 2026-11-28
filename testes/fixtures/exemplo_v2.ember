@@ -6,6 +6,7 @@
  "olhando": "direita",
  "pulos": {
   "normal": {
+   "saida_ticks": 5,
    "altura": 140,
    "ticks_no_ar": 50,
    "avanco": 110,
@@ -19,6 +20,7 @@
    }
   },
   "alto": {
+   "saida_ticks": 6,
    "altura": 200,
    "ticks_no_ar": 62,
    "avanco": 130,
@@ -33,6 +35,7 @@
    }
   },
   "sombra_baixo": {
+   "saida_ticks": 6,
    "altura": 110,
    "ticks_no_ar": 80,
    "avanco": 160,
@@ -46,6 +49,7 @@
    }
   },
   "sombra_alto": {
+   "saida_ticks": 7,
    "altura": 170,
    "ticks_no_ar": 95,
    "avanco": 190,
@@ -60,6 +64,312 @@
    }
   }
  },
+ "config": {
+  "usa_padrao_global": true,
+  "corrida": {
+   "janela_ms": 250,
+   "janela_ticks": 15,
+   "velocidade_px_s": 260
+  },
+  "andar": {
+   "frente_px_s": 120,
+   "tras_px_s": 90
+  },
+  "backdash": {
+   "janela_ms": 250,
+   "janela_ticks": 15,
+   "distancia_px": 90,
+   "ticks": 20
+  },
+  "roll": {
+   "distancia_px": 110,
+   "ticks": 26
+  },
+  "buffer_ticks": 5
+ },
+ "movelist": [
+  {
+   "id": "low_punch",
+   "nome": "Low punch",
+   "categoria": "padrao",
+   "categoria_nome": "Golpes padrão",
+   "dano": 5.5,
+   "comando": {
+    "seq": [],
+    "botao": "LP",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "LP",
+   "versao": "unica"
+  },
+  {
+   "id": "low_kick",
+   "nome": "Low kick",
+   "categoria": "padrao",
+   "categoria_nome": "Golpes padrão",
+   "dano": 8.0,
+   "comando": {
+    "seq": [],
+    "botao": "LK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "LK",
+   "versao": "unica"
+  },
+  {
+   "id": "high_punch",
+   "nome": "High punch",
+   "categoria": "padrao",
+   "categoria_nome": "Golpes padrão",
+   "dano": 8.0,
+   "comando": {
+    "seq": [],
+    "botao": "HP",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "HP",
+   "versao": "unica"
+  },
+  {
+   "id": "high_kick",
+   "nome": "High kick",
+   "categoria": "padrao",
+   "categoria_nome": "Golpes padrão",
+   "dano": 8.0,
+   "comando": {
+    "seq": [],
+    "botao": "HK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "HK",
+   "versao": "unica"
+  },
+  {
+   "id": "blow_off",
+   "nome": "Blow off",
+   "categoria": "comando",
+   "categoria_nome": "Golpes de comando",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     6
+    ],
+    "botao": "BO",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "→ BO",
+   "versao": "unica"
+  },
+  {
+   "id": "charge_hk",
+   "nome": "Charge hk",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 8.0,
+   "comando": {
+    "seq": [],
+    "botao": "HK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6,
+    "charge": {
+     "segurar": 4,
+     "soltar": 6,
+     "tempo_ms": 800,
+     "tempo_ticks": 48
+    }
+   },
+   "comando_texto": "segurar ← 0.8s, soltar → + HK",
+   "versao": "unica"
+  },
+  {
+   "id": "bola_de_fogo",
+   "nome": "Bola de fogo",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 14.25,
+   "comando": {
+    "seq": [
+     2,
+     3,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↓ ↘ → HP",
+   "versao": "forte",
+   "versao_fraca": "bola_de_fogo_fraca"
+  },
+  {
+   "id": "bola_parada",
+   "nome": "Bola parada",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     2,
+     1,
+     4
+    ],
+    "botao": "HK",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↓ ↙ ← HK",
+   "versao": "unica"
+  },
+  {
+   "id": "golpe_ricochete",
+   "nome": "Golpe ricochete",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     4,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "← → HP",
+   "versao": "unica"
+  },
+  {
+   "id": "golpe_stun",
+   "nome": "Golpe stun",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     2,
+     2
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↓ ↓ HP",
+   "versao": "unica"
+  },
+  {
+   "id": "golpe_imposing",
+   "nome": "Golpe imposing",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     8,
+     2
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↑ ↓ HP",
+   "versao": "unica"
+  },
+  {
+   "id": "bola_de_fogo_fraca",
+   "nome": "Bola de fogo fraca",
+   "categoria": "super_move",
+   "categoria_nome": "Super moves",
+   "dano": 9.0,
+   "comando": {
+    "seq": [
+     2,
+     3,
+     6
+    ],
+    "botao": "LP",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↓ ↘ → LP",
+   "versao": "fraca",
+   "versao_forte": "bola_de_fogo"
+  },
+  {
+   "id": "golpe_derruba",
+   "nome": "Golpe derruba",
+   "categoria": "especial",
+   "categoria_nome": "Golpes especiais",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     3,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "↘ → HP",
+   "versao": "unica"
+  },
+  {
+   "id": "golpe_wall",
+   "nome": "Golpe wall",
+   "categoria": "super_especial",
+   "categoria_nome": "Super golpes especiais (secretos)",
+   "dano": 8.0,
+   "comando": {
+    "seq": [
+     6,
+     6
+    ],
+    "botao": "HP",
+    "janela_ticks": 18,
+    "tolerancia_ticks": 6
+   },
+   "comando_texto": "→ → HP",
+   "versao": "unica"
+  }
+ ],
+ "ordem": [
+  "parado",
+  "afk",
+  "andando_frente",
+  "andando_costas",
+  "agachado",
+  "pulando",
+  "pulando_frente",
+  "pulando_tras",
+  "backdash",
+  "roll",
+  "roll_back",
+  "hit_mid",
+  "caindo_frente",
+  "caindo_tras",
+  "caindo_imposing",
+  "rebatido_parede",
+  "rebatido",
+  "stun",
+  "low_punch",
+  "low_kick",
+  "high_punch",
+  "charge_hk",
+  "high_kick",
+  "blow_off",
+  "bola_de_fogo",
+  "bola_parada",
+  "golpe_wall",
+  "golpe_ricochete",
+  "golpe_stun",
+  "golpe_imposing",
+  "golpe_derruba",
+  "bola_de_fogo_fraca"
+ ],
  "sons": {
   "63f118203ba4_1004B": {
    "nome": "whoosh_soco",
@@ -1916,7 +2226,10 @@
     "dx": 30,
     "dy": 0,
     "tempo_ticks": 12
-   }
+   },
+   "nome": "Low punch",
+   "categoria": "padrao",
+   "versao": "unica"
   },
   "low_kick": {
    "tipo": "Padrao",
@@ -2044,7 +2357,10 @@
     "dx": 30,
     "dy": 0,
     "tempo_ticks": 12
-   }
+   },
+   "nome": "Low kick",
+   "categoria": "padrao",
+   "versao": "unica"
   },
   "high_punch": {
    "tipo": "Padrao",
@@ -2199,7 +2515,147 @@
     "dx": 50,
     "dy": 0,
     "tempo_ticks": 16
-   }
+   },
+   "nome": "High punch",
+   "categoria": "padrao",
+   "versao": "unica"
+  },
+  "charge_hk": {
+   "tipo": "Golpes",
+   "ticks_total": 17,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 5,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": []
+    },
+    {
+     "i": 1,
+     "ticks": 3,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 22,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": []
+    },
+    {
+     "i": 2,
+     "ticks": 9,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [],
+    "botao": "HK",
+    "janela_ticks": 20,
+    "tolerancia_ticks": 6,
+    "charge": {
+     "segurar": 4,
+     "soltar": 6,
+     "tempo_ms": 800,
+     "tempo_ticks": 48
+    }
+   },
+   "derivado_60fps": {
+    "startup": 5,
+    "active": 3,
+    "recovery": 9
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": false,
+   "ancora": null,
+   "props": [],
+   "dano": 8.0,
+   "hit": {
+    "dx": 50,
+    "dy": 0,
+    "tempo_ticks": 16
+   },
+   "nome": "Charge hk",
+   "categoria": "super_move",
+   "versao": "unica"
   },
   "high_kick": {
    "tipo": "Padrao",
@@ -2332,7 +2788,10 @@
     "dx": 60,
     "dy": 20,
     "tempo_ticks": 20
-   }
+   },
+   "nome": "High kick",
+   "categoria": "padrao",
+   "versao": "unica"
   },
   "blow_off": {
    "tipo": "Padrao",
@@ -2461,7 +2920,10 @@
      "k": "wall"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Blow off",
+   "categoria": "comando",
+   "versao": "unica"
   },
   "bola_de_fogo": {
    "tipo": "Golpes",
@@ -2627,7 +3089,11 @@
     "dx": 40,
     "dy": 0,
     "tempo_ticks": 18
-   }
+   },
+   "nome": "Bola de fogo",
+   "categoria": "super_move",
+   "versao": "forte",
+   "versao_fraca": "bola_de_fogo_fraca"
   },
   "bola_parada": {
    "tipo": "Golpes",
@@ -2781,7 +3247,10 @@
     "dx": 20,
     "dy": 0,
     "tempo_ticks": 10
-   }
+   },
+   "nome": "Bola parada",
+   "categoria": "super_move",
+   "versao": "unica"
   },
   "golpe_wall": {
    "tipo": "Golpes",
@@ -2911,7 +3380,10 @@
      "k": "wall"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Golpe wall",
+   "categoria": "super_especial",
+   "versao": "unica"
   },
   "golpe_ricochete": {
    "tipo": "Golpes",
@@ -3041,7 +3513,10 @@
      "k": "ricochete"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Golpe ricochete",
+   "categoria": "super_move",
+   "versao": "unica"
   },
   "golpe_stun": {
    "tipo": "Golpes",
@@ -3171,7 +3646,10 @@
      "k": "stun"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Golpe stun",
+   "categoria": "super_move",
+   "versao": "unica"
   },
   "golpe_imposing": {
    "tipo": "Golpes",
@@ -3301,7 +3779,10 @@
      "k": "imposing"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Golpe imposing",
+   "categoria": "super_move",
+   "versao": "unica"
   },
   "golpe_derruba": {
    "tipo": "Golpes",
@@ -3435,7 +3916,175 @@
      "k": "no_recovery"
     }
    ],
-   "dano": 8.0
+   "dano": 8.0,
+   "nome": "Golpe derruba",
+   "categoria": "especial",
+   "versao": "unica"
+  },
+  "bola_de_fogo_fraca": {
+   "tipo": "Golpes",
+   "ticks_total": 22,
+   "frames": [
+    {
+     "i": 0,
+     "ticks": 6,
+     "camadas": {
+      "personagem": {
+       "sprite": "9835e858d36b_24x32"
+      },
+      "magia": null,
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "startup",
+     "tags": [],
+     "sons": [
+      {
+       "id": "15747e170a67_1644B",
+       "vol": 100,
+       "canal": "voz",
+       "quando": "inicio"
+      }
+     ]
+    },
+    {
+     "i": 1,
+     "ticks": 4,
+     "camadas": {
+      "personagem": {
+       "sprite": "d55f246f27a9_24x32"
+      },
+      "magia": {
+       "sprite": "94e0a0ce268c_24x32",
+       "x": 20,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hitbox": [
+        {
+         "x": 8,
+         "y": -26,
+         "w": 14,
+         "h": 10
+        }
+       ],
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "active",
+     "tags": [
+      {
+       "k": "solta",
+       "modo": "atravessa",
+       "vx": 320,
+       "vy": 0,
+       "alcance": 0
+      }
+     ]
+    },
+    {
+     "i": 2,
+     "ticks": 12,
+     "camadas": {
+      "personagem": {
+       "sprite": "f5ce88002b50_24x32"
+      },
+      "magia": {
+       "sprite": "cfc1b81edec5_24x32",
+       "x": 40,
+       "y": -20,
+       "ocultar_personagem": false
+      },
+      "boxes": {
+       "hurtbox": [
+        {
+         "x": -8,
+         "y": -30,
+         "w": 16,
+         "h": 30
+        }
+       ],
+       "pushbox": [
+        {
+         "x": -6,
+         "y": -20,
+         "w": 12,
+         "h": 20
+        }
+       ]
+      }
+     },
+     "fase": "recovery",
+     "tags": []
+    }
+   ],
+   "repeticao": "termina",
+   "trechos": [],
+   "input": {
+    "seq": [
+     2,
+     3,
+     6
+    ],
+    "botao": "LP",
+    "janela_ticks": 24,
+    "tolerancia_ticks": 6
+   },
+   "derivado_60fps": {
+    "startup": 6,
+    "active": 4,
+    "recovery": 12
+   },
+   "nivel": "mid",
+   "condicoes": [],
+   "magia": true,
+   "ancora": {
+    "x": 20,
+    "y": -26
+   },
+   "props": [],
+   "dano": 9.0,
+   "hit": {
+    "dx": 40,
+    "dy": 0,
+    "tempo_ticks": 18
+   },
+   "nome": "Bola de fogo fraca",
+   "categoria": "super_move",
+   "versao": "fraca",
+   "versao_forte": "bola_de_fogo"
   }
  }
 }

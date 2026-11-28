@@ -30,6 +30,7 @@ func _init() -> void:
 	_testar_input_arquivo()
 	_testar_forge_v2()
 	_testar_ajustes_combate()
+	_testar_charge_e_config()
 	print("Resultado: %d ok, %d falha(s)" % [passou, falhas])
 	quit(1 if falhas > 0 else 0)
 
@@ -544,6 +545,15 @@ func _testar_forge_v2() -> void:
 	var anda: Dictionary = per["forge"]["moves"]["andando_frente"]
 	_checar("andando_frente: fases, parar_se e nao_quebra", bool(anda["fases"]) and bool(anda["dinamico"]) and (anda["nao_quebra"] as Array).has("low_punch"))
 	_checar("andando_costas: ida e volta com parar_se", bool(per["forge"]["moves"]["andando_costas"]["dinamico"]))
+	var fg: Dictionary = per["forge"]
+	_checar("config: corrida, andar, backdash, roll e buffer", int(fg["config"]["corrida"]["janela"]) == 15 and int(fg["config"]["buffer"]) == 5 and int(fg["config"]["backdash"]["ticks"]) == 20 and absf(float(fg["config"]["andar"]["tras"]) - 90.0) < 0.01)
+	_checar("pulo normal: saída de 5 ticks", int(fg["pulos"]["normal"]["saida"]) == 5)
+	_checar("movelist e ordem vindas da Forge", (fg["movelist"] as Array).size() == 14 and (fg["ordem"] as Array).size() > 20)
+	for g2 in per["golpes"]:
+		if str(g2["forge_move"]) == "charge_hk":
+			_checar("charge_hk: segurar 4, soltar 6, 48 ticks, nome e categoria", int(g2["input"]["charge"]["segurar"]) == 4 and int(g2["input"]["charge"]["soltar"]) == 6 and int(g2["input"]["charge"]["tempo"]) == 48 and str(g2["nome"]) == "Charge hk" and str(g2["categoria"]) == "super_move")
+		if str(g2["forge_move"]) == "bola_de_fogo":
+			_checar("bola_de_fogo: versão forte e fraca", str(g2["versao"]) == "forte" and str(g2["versao_fraca"]) == "bola_de_fogo_fraca")
 
 	# Passo dos trechos (loop avançado)
 	var tr: Array = [{"de": 0, "ate": 2, "vezes": 2, "modo": "vai_e_volta", "saida": "fim_do_ciclo", "parar": []}]
@@ -579,3 +589,71 @@ func _testar_ajustes_combate() -> void:
 	_checar("dano pequeno não dá stun", b.estado == Personagem.Estado.GOLPEADO and b.nome_move() != "stun")
 	b.receber_acerto(golpe, 16.0)
 	_checar("25% de vida perdida sem revidar causa stun", b.nome_move() == "stun" and b.dano_sem_revide == 0.0)
+
+
+func _testar_charge_e_config() -> void:
+	print("Charge, corrida e backdash por 2 toques")
+	var carga: Dictionary = Formato.padrao_golpe()
+	carga["nome"] = "Carga"
+	carga["input"] = {"seq": [], "botao": "HK", "janela": 20, "tol": 6, "charge": {"segurar": 4, "soltar": 6, "tempo_ticks": 48}}
+	var chute: Dictionary = Formato.padrao_golpe()
+	chute["nome"] = "Chute"
+	chute["input"] = {"seq": [], "botao": "HK", "janela": 24, "tol": 6}
+	var alvo = Personagem.new()
+	alvo.resetar(700.0, false)
+	var hk := _sem_botoes()
+	hk["HK"] = true
+
+	var a = Personagem.new()
+	a.oponente = alvo
+	a.definir_golpes([chute, carga])
+	a.resetar(300.0, true)
+	for i in 30:
+		a.atualizar(Vector2(-1, 0), _sem_botoes())
+	a.atualizar(Vector2(1, 0), hk)
+	_checar("charge incompleto: sai só o chute simples", a.estado == Personagem.Estado.ATACANDO and str(a.golpe_atual["nome"]) == "Chute")
+
+	var b = Personagem.new()
+	b.oponente = alvo
+	b.definir_golpes([chute, carga])
+	b.resetar(300.0, true)
+	for i in 60:
+		b.atualizar(Vector2(-1, 0), _sem_botoes())
+	b.atualizar(Vector2(1, 0), hk)
+	_checar("segurou trás por 48+ ticks e soltou para frente + HK: sai o charge", b.estado == Personagem.Estado.ATACANDO and str(b.golpe_atual["nome"]) == "Carga")
+
+	var cfg := {"config": {"corrida": {"janela": 15, "vel": 260.0}, "andar": {"frente": 120.0, "tras": 90.0},
+		"backdash": {"janela": 15, "dist": 90.0, "ticks": 20}, "buffer": 5}, "moves": {}}
+	var c = Personagem.new()
+	c.oponente = alvo
+	c.definir_golpes([chute])
+	c.resetar(300.0, true)
+	c.forge = cfg
+	c.escala_sprite = 2.0
+	c.atualizar(Vector2(1, 0), _sem_botoes())
+	c.atualizar(Vector2.ZERO, _sem_botoes())
+	c.atualizar(Vector2(1, 0), _sem_botoes())
+	_checar("6, solta, 6 dentro da janela: corre (260 px/s x escala)", c._correndo and absf(c.vel.x - 520.0) < 1.0)
+
+	var d = Personagem.new()
+	d.oponente = alvo
+	d.definir_golpes([chute])
+	d.resetar(300.0, true)
+	d.forge = cfg
+	d.escala_sprite = 2.0
+	d.atualizar(Vector2(1, 0), _sem_botoes())
+	for i in 40:
+		d.atualizar(Vector2.ZERO, _sem_botoes())
+	d.atualizar(Vector2(1, 0), _sem_botoes())
+	_checar("2º toque fora da janela: só anda (120 px/s x escala)", not d._correndo and absf(d.vel.x - 240.0) < 1.0)
+
+	var e = Personagem.new()
+	e.oponente = alvo
+	e.definir_golpes([chute])
+	e.resetar(300.0, true)
+	e.forge = cfg
+	e.escala_sprite = 2.0
+	e.atualizar(Vector2(-1, 0), _sem_botoes())
+	e.atualizar(Vector2.ZERO, _sem_botoes())
+	e.atualizar(Vector2(-1, 0), _sem_botoes())
+	_checar("4, solta, 4: backdash de 20 ticks sem segurar", e.estado == Personagem.Estado.ESQUIVANDO and e.duracao == 20)

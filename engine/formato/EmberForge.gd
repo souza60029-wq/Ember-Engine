@@ -163,6 +163,12 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 				g["botao"] = "LP" if str(g["comando"]).ends_with("P") else "LK"
 				n_custom += 1
 		g["forge_move"] = str(nome)
+		if str(mv["nome"]) != "":
+			g["nome"] = str(mv["nome"])
+		g["categoria"] = str(mv["categoria"])
+		g["versao"] = str(mv["versao"])
+		g["versao_fraca"] = str(mv["versao_fraca"])
+		g["versao_forte"] = str(mv["versao_forte"])
 		# Formato 2: comando, quick, propriedades, hit e dano vêm do arquivo.
 		g["input"] = mv["input"]
 		if not (mv["input"] as Dictionary).is_empty() and str((mv["input"] as Dictionary)["botao"]) != "" and str((mv["input"] as Dictionary)["botao"]) != "ESQ":
@@ -226,7 +232,9 @@ static func importar_texto(texto: String, pasta: String) -> Dictionary:
 			"sprites": slots,
 			"magias": [],
 			"golpes": golpes,
-			"forge": {"moves": forge_moves, "pulos": _pulos(raiz.get("pulos", null)), "sons_ignorados": sons_ignorados},
+			"forge": {"moves": forge_moves, "pulos": _pulos(raiz.get("pulos", null)), "sons_ignorados": sons_ignorados,
+				"config": _config(raiz.get("config", null)), "movelist": _movelist(raiz.get("movelist", null)),
+				"ordem": _lista_texto(raiz.get("ordem", null))},
 		},
 	}
 
@@ -243,7 +251,50 @@ static func _pulos(v: Variant) -> Dictionary:
 		r[k] = {"altura": clampf(float(p.get("altura", 140.0)), 10.0, 800.0),
 			"ticks": clampi(int(p.get("ticks_no_ar", 50)), 10, 300),
 			"avanco": clampf(float(p.get("avanco", 0.0)), 0.0, 1200.0),
+			"saida": clampi(int(p.get("saida_ticks", 0)), 0, 60),   # ticks no chão (agachada) antes de sair
 			"input": Formato.normalizar_input(p.get("input", {}))}
+	return r
+
+
+static func _lista_texto(v: Variant) -> Array:
+	var r: Array = []
+	if typeof(v) == TYPE_ARRAY:
+		for x in v:
+			r.append(str(x))
+	return r
+
+
+# Config já resolvida pela Forge (padrão global ou do personagem). Vazio = a engine usa os padrões dela.
+static func _config(v: Variant) -> Dictionary:
+	var r := {}
+	if typeof(v) != TYPE_DICTIONARY:
+		return r
+	var c: Dictionary = v
+	if typeof(c.get("corrida", null)) == TYPE_DICTIONARY:
+		r["corrida"] = {"janela": clampi(int(c["corrida"].get("janela_ticks", 15)), 1, 60), "vel": clampf(float(c["corrida"].get("velocidade_px_s", 260.0)), 0.0, 2000.0)}
+	if typeof(c.get("andar", null)) == TYPE_DICTIONARY:
+		r["andar"] = {"frente": clampf(float(c["andar"].get("frente_px_s", 120.0)), 0.0, 2000.0), "tras": clampf(float(c["andar"].get("tras_px_s", 90.0)), 0.0, 2000.0)}
+	if typeof(c.get("backdash", null)) == TYPE_DICTIONARY:
+		r["backdash"] = {"janela": clampi(int(c["backdash"].get("janela_ticks", 15)), 1, 60), "dist": clampf(float(c["backdash"].get("distancia_px", 90.0)), 0.0, 1500.0), "ticks": clampi(int(c["backdash"].get("ticks", 20)), 1, 120)}
+	if typeof(c.get("roll", null)) == TYPE_DICTIONARY:
+		r["roll"] = {"dist": clampf(float(c["roll"].get("distancia_px", 110.0)), 0.0, 1500.0), "ticks": clampi(int(c["roll"].get("ticks", 26)), 1, 120)}
+	if c.has("buffer_ticks"):
+		r["buffer"] = clampi(int(c["buffer_ticks"]), 0, 30)
+	return r
+
+
+# Lista da movelist já pronta pela Forge (a tela de movelist usa isto). Só dados simples.
+static func _movelist(v: Variant) -> Array:
+	var r: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return r
+	for e in v:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		r.append({"id": str(e.get("id", "")), "nome": str(e.get("nome", "")), "categoria": str(e.get("categoria", "padrao")),
+			"categoria_nome": str(e.get("categoria_nome", "")), "dano": float(e.get("dano", 0.0)),
+			"comando": Formato.normalizar_input(e.get("comando", {})), "comando_texto": str(e.get("comando_texto", "")),
+			"versao": str(e.get("versao", "unica")), "versao_fraca": str(e.get("versao_fraca", "")), "versao_forte": str(e.get("versao_forte", ""))})
 	return r
 
 
@@ -338,7 +389,7 @@ static func _trechos(v: Variant, mapa: Dictionary) -> Array:
 		if typeof(t) == TYPE_DICTIONARY and mapa.has(int(t.get("de", -1))) and mapa.has(int(t.get("ate", -1))):
 			var parar: Array = []
 			if typeof(t.get("parar_se", [])) == TYPE_ARRAY:
-				for c in t.get("parar_se", []):
+				for c in t["parar_se"]:
 					if typeof(c) == TYPE_DICTIONARY and ["analogico_igual", "analogico_diferente", "botao_apertado", "botao_solto", "colisao", "acertou"].has(str(c.get("k", ""))):
 						parar.append({"k": str(c["k"]), "valor": str(c.get("valor", ""))})
 			r.append({"de": int(mapa[int(t["de"])]), "ate": int(mapa[int(t["ate"])]), "vezes": maxi(int(t.get("vezes", 1)), 0),
@@ -474,7 +525,7 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 			dinamico = true
 	var nao_quebra: Array = []
 	if typeof(m.get("nao_quebra", [])) == TYPE_ARRAY:
-		for nq in m.get("nao_quebra", []):
+		for nq in m["nao_quebra"]:
 			nao_quebra.append(str(nq))
 	var linha: Dictionary = {"cron": cron, "loop": []}
 	if tem_rep:
@@ -493,6 +544,11 @@ static func _move(nome: String, m: Dictionary, arquivos: Dictionary, tamanhos: D
 		"trechos": trechos,
 		"dinamico": dinamico,           # tem "parar_se": a engine anda frame a frame (cursor)
 		"fases": bool(m.get("fases", false)),
+		"nome": str(m.get("nome", "")),
+		"categoria": str(m.get("categoria", "padrao")),
+		"versao": str(m.get("versao", "unica")),
+		"versao_fraca": str(m.get("versao_fraca", "")),
+		"versao_forte": str(m.get("versao_forte", "")),
 		"nao_quebra": nao_quebra,
 		"input": Formato.normalizar_input(m.get("input", {})),
 		"quick": Formato._quick(m.get("quick", {})),

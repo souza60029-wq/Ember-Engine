@@ -156,6 +156,9 @@ var dano_sem_revide: float = 0.0    # % de vida perdida sem causar dano ao opone
 var _prox_visto: bool = false       # "proximo": o evento que o frame espera já aconteceu
 var _prox_espera: int = 0
 var _prox_total: int = 0
+var _cargas: Dictionary = {}        # golpes charge: ticks segurando a direção e folga depois de soltar
+var _disparo_ago: int = 999         # ticks desde o último comando disparado (buffer não repete o mesmo toque)
+var _esq_vel: float = Combate.ESQUIVA_VEL   # velocidade da esquiva em curso (backdash e roll vêm da config)
 var carga_tras_t: float = 0.0
 var carga_baixo_t: float = 0.0
 var frames_desde_baixo: int = 999
@@ -483,30 +486,119 @@ func _casa_dir(d: int, alvo: int) -> bool:
 	return false
 
 
-# Reconhecimento de comando do arquivo: {seq, botao, janela, tol}. Devolve o tamanho da sequência se
-# o comando foi cumprido neste tick, ou -1. botao_alt troca o botão (Quick usa a mesma seq com QP/QK/QB).
-# O botão pode vir até "tol" ticks antes ou depois do último passo da sequência.
-func _casa_input(inp: Dictionary, botao_alt: String = "") -> int:
-	var seq: Array = inp.get("seq", [])
+# Reconhecimento de comando do arquivo: {seq, botao, janela, tol, charge}. Devolve o tamanho da sequência
+# se o comando foi cumprido, ou -1. botao_alt troca o botão (Quick usa o mesmo comando com QP/QK/QB).
+# O botão pode vir até "tol" ticks antes ou depois do último passo. Com buffer_ticks (config), o comando
+# cumprido enquanto o personagem não podia agir ainda vale por esse tempo, uma vez só.
+func _casa_input(inp: Dictionary, botao_alt: String = "", chave: String = "") -> int:
 	var botao: String = botao_alt if botao_alt != "" else str(inp.get("botao", ""))
 	var tol: int = int(inp.get("tol", 6))
-	var janela: int = int(inp.get("janela", 24))
 	var n: int = _hist.size()
-	if n == 0 or (seq.is_empty() and botao == ""):
+	if n == 0:
+		return -1
+	if not (inp.get("charge", {}) as Dictionary).is_empty():
+		return _casa_charge(inp["charge"], botao, tol, chave)
+	var seq: Array = inp.get("seq", [])
+	var janela: int = int(inp.get("janela", 24))
+	var buf: int = _buffer()
+	if seq.is_empty() and botao == "":
 		return -1
 	if seq.is_empty():
-		return 0 if bool((_hist_bt[n - 1] as Dictionary).get(botao, false)) else -1
+		for k in range(buf + 1):
+			if n - 1 - k < 0 or k >= _disparo_ago:
+				break
+			if bool((_hist_bt[n - 1 - k] as Dictionary).get(botao, false)):
+				return 0
+		return -1
 	var ultimo: int = int(seq[seq.size() - 1])
-	var ts_min: int = maxi(0, n - 1 - tol) if botao != "" else n - 1
+	var ts_min: int = maxi(0, n - 1 - tol - buf) if botao != "" else maxi(0, n - 1 - buf)
 	for ts in range(n - 1, ts_min - 1, -1):
 		if not _casa_dir(int(_hist[ts]), ultimo) or not _passos_anteriores(seq, ts, janela):
 			continue
 		if botao == "":
-			return seq.size()
-		for tb in range(maxi(0, ts - tol), mini(n - 1, ts + tol) + 1):
-			if bool((_hist_bt[tb] as Dictionary).get(botao, false)) and maxi(ts, tb) == n - 1:
+			if n - 1 - ts < _disparo_ago:
 				return seq.size()
+			continue
+		for tb in range(maxi(0, ts - tol), mini(n - 1, ts + tol) + 1):
+			if bool((_hist_bt[tb] as Dictionary).get(botao, false)):
+				var idade: int = n - 1 - maxi(ts, tb)
+				if idade <= buf and idade < _disparo_ago:
+					return seq.size()
 	return -1
+
+
+# Golpe charge: segurou "segurar" por "tempo" ticks (com folga de "janela" ticks depois de soltar), está em
+# "soltar" agora e, se tiver botão, apertou até "tol" ticks atrás. Devolve 2 (duas direções) ou -1.
+func _casa_charge(ch: Dictionary, botao: String, tol: int, chave: String) -> int:
+	var c: Dictionary = _cargas.get(chave, {})
+	if c.is_empty() or int(c["t"]) < int(ch["tempo"]):
+		return -1
+	var n: int = _hist.size()
+	if not _casa_dir(int(_hist[n - 1]), int(ch["soltar"])):
+		return -1
+	if botao != "":
+		var achou: bool = false
+		for tb in range(maxi(0, n - 1 - tol), n):
+			if bool((_hist_bt[tb] as Dictionary).get(botao, false)):
+				achou = true
+		if not achou:
+			return -1
+	return 2
+
+
+func _chave_golpe(g: Dictionary) -> String:
+	return str(g.get("forge_move", "")) if str(g.get("forge_move", "")) != "" else str(g.get("nome", ""))
+
+
+# Atualiza a carga de cada comando charge (golpes e pulos): conta enquanto segura a direção, guarda por
+# "janela" ticks depois de soltar e zera quando a folga acaba.
+func _atualizar_cargas(dig: int) -> void:
+	if not _modo_arquivo:
+		return
+	for g in golpes:
+		var inp: Dictionary = g["input"]
+		if not (inp.get("charge", {}) as Dictionary).is_empty():
+			_carga_passo(_chave_golpe(g), inp["charge"], int(inp["janela"]), dig)
+	var pulos: Dictionary = forge.get("pulos", {})
+	for nome in pulos.keys():
+		var pin: Dictionary = (pulos[nome] as Dictionary).get("input", {})
+		if not (pin.get("charge", {}) as Dictionary).is_empty():
+			_carga_passo("pulo_" + str(nome), pin["charge"], int(pin["janela"]), dig)
+
+
+func _carga_passo(chave: String, ch: Dictionary, folga: int, dig: int) -> void:
+	var c: Dictionary = _cargas.get(chave, {"t": 0, "folga": 0})
+	if _casa_dir(dig, int(ch["segurar"])):
+		c["t"] = int(c["t"]) + 1
+		c["folga"] = folga
+	elif int(c["folga"]) > 0:
+		c["folga"] = int(c["folga"]) - 1
+	else:
+		c["t"] = 0
+	_cargas[chave] = c
+
+
+func _cfg(nome: String) -> Dictionary:
+	return (forge.get("config", {}) as Dictionary).get(nome, {})
+
+
+# Ticks que um comando cumprido enquanto o personagem não podia agir fica guardado (config.buffer_ticks).
+func _buffer() -> int:
+	return int((forge.get("config", {}) as Dictionary).get("buffer", 0))
+
+
+# Toque duplo na direção alvo: apertou, soltou e apertou de novo em até "janela" ticks (contados desde que
+# soltou). Devolve true no tick do segundo toque. Usado por correr (frente, segurando) e backdash (trás).
+func _toque_duplo(alvo: int, janela: int) -> bool:
+	var n: int = _hist.size()
+	if n < 3 or not _casa_dir(int(_hist[n - 1]), alvo) or _casa_dir(int(_hist[n - 2]), alvo):
+		return false
+	var i: int = n - 2
+	var soltos: int = 0
+	while i >= 0 and not _casa_dir(int(_hist[i]), alvo):
+		soltos += 1
+		i -= 1
+	return i >= 0 and soltos <= janela
 
 
 # Passos antes do último, em ordem, dentro da janela. Passo repetido ([4,4]) exige soltar entre os toques.
@@ -555,11 +647,12 @@ func _escolher_golpe_arquivo(apertados: Dictionary, encadeando: bool = false) ->
 			continue
 		if encadeando and _eh_golpe(golpe_atual, str(d.get("forge_move", ""))):
 			continue
-		var n: int = _casa_input(inp)
+		var chave: String = _chave_golpe(d)
+		var n: int = _casa_input(inp, "", chave)
 		var rapido: bool = false
 		var q: Dictionary = d["quick"]
 		if n < 0 and not q.is_empty() and not flatline and bool(apertados.get(str(q["botao"]), false)):
-			n = _casa_input(inp, str(q["botao"]))
+			n = _casa_input(inp, str(q["botao"]), chave)
 			rapido = n >= 0
 		if n < 0:
 			continue
@@ -573,6 +666,8 @@ func _escolher_golpe_arquivo(apertados: Dictionary, encadeando: bool = false) ->
 # Executa o golpe do arquivo. Por Quick: corta a fase marcada (startup ou recovery) e enche o Pulse.
 func _executar_arquivo(sel: Dictionary, encadeado: bool = false) -> void:
 	var g: Dictionary = sel["g"]
+	_cargas.erase(_chave_golpe(g))   # disparou: consome a carga
+	_disparo_ago = 0
 	_executar(g, encadeado)
 	if not bool(sel["quick"]):
 		return
@@ -591,6 +686,19 @@ func _executar_arquivo(sel: Dictionary, encadeado: bool = false) -> void:
 	if pulse >= 100.0:
 		flatline = true
 	eventos.append({"tipo": "quick", "golpe": {}})
+
+
+# Velocidades (px/s na tela): vêm da config do .ember (px do sprite x escala) ou do Combate.gd.
+func _vel_andar(frente_: bool) -> float:
+	var a: Dictionary = _cfg("andar")
+	if a.is_empty():
+		return VEL_ANDAR if frente_ else VEL_ANDAR * Combate.VEL_ANDAR_COSTAS
+	return float(a["frente" if frente_ else "tras"]) * escala_sprite
+
+
+func _vel_correr() -> float:
+	var c: Dictionary = _cfg("corrida")
+	return Combate.VEL_CORRER if c.is_empty() else float(c["vel"]) * escala_sprite
 
 
 # Direção do analógico que ativa um movimento contínuo (andando_frente, andando_costas, agachado).
@@ -660,13 +768,16 @@ func _escolher_pulo() -> String:
 		var inp: Dictionary = (pulos[nome] as Dictionary).get("input", {})
 		if inp.is_empty():
 			inp = PULOS_PADRAO[nome]
-		var n: int = _casa_input(inp)
+		var n: int = _casa_input(inp, "", "pulo_" + str(nome))
 		if n < 0:
 			continue
 		var peso: int = n * 2 + (1 if str(inp.get("botao", "")) != "" else 0)
 		if peso > melhor_peso:
 			melhor_peso = peso
 			melhor = str(nome)
+	if melhor != "":
+		_cargas.erase("pulo_" + melhor)
+		_disparo_ago = 0
 	return melhor
 
 
@@ -888,6 +999,8 @@ func resetar(x: float, olhando_direita: bool) -> void:
 	_manter = ""
 	_pendente = {}
 	_correndo = false
+	_cargas = {}
+	_disparo_ago = 999
 	dano_sem_revide = 0.0
 	_prox_reset()
 	_limpar_reacoes()
@@ -936,6 +1049,8 @@ func atualizar(dir: Vector2, apertados: Dictionary) -> void:
 	if _hist_bt.size() > 40:
 		_hist_bt.pop_front()
 	var dig: int = int(_hist[_hist.size() - 1])
+	_disparo_ago = mini(_disparo_ago + 1, 999)
+	_atualizar_cargas(dig)
 	if estado in [Estado.PARADO, Estado.ANDANDO, Estado.DEFENDENDO]:
 		# Com .ember v2 a direção que agacha vem do input de "agachado" (padrão: 2).
 		var agacha: bool = _casa_dir(dig, _dir_mov("agachado", 2)) if _modo_arquivo else baixo
@@ -995,11 +1110,17 @@ func _estado_livre(dir: Vector2, apertados: Dictionary, atras: bool, cima: bool)
 			if pulo != "":
 				_iniciar_decolagem(dir, pulo)
 				return
-		if not no_chao and esquiva_trava == 0 and _entrada_mov("backdash", [4, 4]):
-			_iniciar_esquiva(Vector2(-1.0 if direita else 1.0, 0.0))
-			return
-		if not no_chao and not _correndo and not _move_ok("correndo").is_empty() and _entrada_mov("correndo", [6, 6]):
-			_correndo = true
+		if not no_chao and esquiva_trava == 0:
+			var bd: Dictionary = _cfg("backdash")
+			# Backdash: 4, solta, 4 dentro da janela (config). Sem config, usa o input [4,4] do move.
+			if (_toque_duplo(4, int(bd["janela"])) if not bd.is_empty() else _entrada_mov("backdash", [4, 4])):
+				_iniciar_esquiva(Vector2(-1.0 if direita else 1.0, 0.0))
+				return
+		if not no_chao and not _correndo:
+			var cr: Dictionary = _cfg("corrida")
+			# Correr: 6, solta, 6 dentro da janela e mantido. Sem config, usa o input [6,6] do move.
+			if (_toque_duplo(6, int(cr["janela"])) if not cr.is_empty() else (not _move_ok("correndo").is_empty() and _entrada_mov("correndo", [6, 6]))):
+				_correndo = true
 	if apertados.get("ESQ", false) and not no_chao and esquiva_trava == 0:
 		_iniciar_esquiva(dir)
 		return
@@ -1033,10 +1154,10 @@ func _estado_livre(dir: Vector2, apertados: Dictionary, atras: bool, cima: bool)
 		_correndo = false
 	if costas:
 		estado = Estado.DEFENDENDO
-		vel.x = dir.x * VEL_ANDAR * Combate.VEL_ANDAR_COSTAS * _mult_vel()
+		vel.x = dir.x * _vel_andar(false) * _mult_vel()
 	elif frente_mov:
 		estado = Estado.ANDANDO
-		vel.x = dir.x * (Combate.VEL_CORRER if _correndo else VEL_ANDAR) * _mult_vel()
+		vel.x = dir.x * (_vel_correr() if _correndo else _vel_andar(true)) * _mult_vel()
 	else:
 		estado = Estado.PARADO
 		vel.x = 0.0
@@ -1284,6 +1405,9 @@ func _iniciar_decolagem(dir: Vector2, pulo: String = "") -> void:
 	estado = Estado.DECOLANDO
 	tempo = 0
 	duracao = DECOLAGEM_SOMBRA if pulo_sombra else DECOLAGEM_NORMAL
+	var dp: Dictionary = (forge.get("pulos", {}) as Dictionary).get(pulo, {})
+	if pulo != "" and dp.has("saida"):
+		duracao = maxi(int(dp["saida"]), 1)   # ticks na agachada do pulo, ainda no chão
 	vel = Vector2.ZERO
 
 
@@ -1321,20 +1445,24 @@ func _processar_decolagem(dir: Vector2) -> void:
 func _iniciar_esquiva(dir: Vector2) -> void:
 	var frente: float = 1.0 if direita else -1.0
 	esquiva_dir = -frente if dir.x * frente < -0.5 else frente
-	esquiva_trava = ESQUIVA_FRAMES + ESQUIVA_RECARGA
+	# Backdash e roll: distância total (px do sprite x escala) e duração vêm da config do .ember.
+	var cfg: Dictionary = _cfg("backdash" if esquiva_dir * frente < 0.0 else "roll")
+	var ticks: int = int(cfg["ticks"]) if not cfg.is_empty() else ESQUIVA_FRAMES
+	_esq_vel = ESQUIVA_VEL if cfg.is_empty() else float(cfg["dist"]) * escala_sprite / (float(ticks) * DT)
+	esquiva_trava = ticks + ESQUIVA_RECARGA
 	eventos.append({"tipo": "esquiva", "golpe": {}})
 	estado = Estado.ESQUIVANDO
 	tempo = 0
-	duracao = ESQUIVA_FRAMES
+	duracao = ticks
 	golpe_atual = {}
 	bloqueado = false
-	vel.x = esquiva_dir * ESQUIVA_VEL
+	vel.x = esquiva_dir * _esq_vel
 
 
 func _processar_temporizado() -> void:
 	tempo += 1
 	if estado == Estado.ESQUIVANDO:
-		vel.x = esquiva_dir * ESQUIVA_VEL
+		vel.x = esquiva_dir * _esq_vel
 	elif estado == Estado.GUARDA_QUEBRADA:
 		vel.x *= 0.85
 		guarda = GUARDA_MAX * float(tempo) / float(maxi(1, duracao))

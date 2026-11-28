@@ -95,6 +95,10 @@ static func padrao_golpe() -> Dictionary:
 		"props": [],
 		"hit": {},
 		"dano_pct": -1.0,
+		"categoria": "padrao",
+		"versao": "unica",
+		"versao_fraca": "",
+		"versao_forte": "",
 		"forge_move": "",
 		"sprite_impacto": -1,
 		"sons_quadros": [],
@@ -112,6 +116,9 @@ static func padrao_golpe() -> Dictionary:
 
 const BOTOES_INPUT := ["", "LP", "LK", "HP", "HK", "BO", "ESQ"]
 const BOTOES_QUICK := ["QP", "QK", "QB"]
+const DIRS_CHARGE := [1, 2, 3, 4, 6, 7, 8, 9]
+const CATEGORIAS := ["padrao", "comando", "super_move", "especial", "super_especial"]
+const VERSOES := ["unica", "fraca", "forte"]
 const PROPS_VALIDAS := ["wall", "ricochete", "stun", "imposing", "no_recovery", "queda"]
 
 
@@ -129,11 +136,24 @@ static func normalizar_input(v) -> Dictionary:
 	var botao: String = str(v.get("botao", ""))
 	if not BOTOES_INPUT.has(botao):
 		botao = ""
-	if seq.is_empty() and botao == "":
+	# Charge: segurar uma direção por "tempo" ticks e soltar para outra (a seq é ignorada).
+	var charge: Dictionary = {}
+	var ch: Variant = v.get("charge", null)
+	if typeof(ch) == TYPE_DICTIONARY:
+		var segurar: int = int(ch.get("segurar", 0))
+		var soltar: int = int(ch.get("soltar", 0))
+		if DIRS_CHARGE.has(segurar) and DIRS_CHARGE.has(soltar):
+			var tempo: int = int(ch["tempo"]) if ch.has("tempo") else (int(ch["tempo_ticks"]) if ch.has("tempo_ticks") else int(round(float(ch.get("tempo_ms", 0)) * 0.06)))
+			charge = {"segurar": segurar, "soltar": soltar, "tempo": clampi(tempo, 1, 600)}
+			seq = []
+	if seq.is_empty() and botao == "" and charge.is_empty():
 		return {}
-	return {"seq": seq, "botao": botao,
+	var r := {"seq": seq, "botao": botao,
 		"janela": clampi(int(v.get("janela", v.get("janela_ticks", 24))), 1, 120),
 		"tol": clampi(int(v.get("tol", v.get("tolerancia_ticks", 6))), 0, 30)}
+	if not charge.is_empty():
+		r["charge"] = charge
+	return r
 
 
 # Quick do golpe: {botao: QP|QK|QB, corta: startup|recovery, pulse: % da barra}.
@@ -270,6 +290,10 @@ static func normalizar_golpe(g_in: Dictionary) -> Dictionary:
 	r["props"] = _props(r["props"])
 	r["hit"] = _hit(r["hit"])
 	r["dano_pct"] = clampf(float(r["dano_pct"]), -1.0, 100.0)
+	r["categoria"] = str(r["categoria"]) if CATEGORIAS.has(str(r["categoria"])) else "padrao"
+	r["versao"] = str(r["versao"]) if VERSOES.has(str(r["versao"])) else "unica"
+	r["versao_fraca"] = str(r["versao_fraca"]).left(60)
+	r["versao_forte"] = str(r["versao_forte"]).left(60)
 	r["sprite_impacto"] = clampi(int(r["sprite_impacto"]), -1, MAX_QUADROS)
 
 	var hb = r["hitbox"] if typeof(r["hitbox"]) == TYPE_DICTIONARY else {}
