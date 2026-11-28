@@ -39,7 +39,6 @@ jobs:
           ls -la build/ios
 
       - name: Adicionar seletor de galeria e arquivos (nativo)
-        continue-on-error: true
         run: |
           set -e
           echo "=== Conferindo o codigo nativo ==="
