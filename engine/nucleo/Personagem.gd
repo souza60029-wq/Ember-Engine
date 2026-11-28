@@ -7,6 +7,7 @@ extends RefCounted
 # Escala: corpo e hitbox crescem; velocidade e altura do pulo ficam em px.
 
 const Barra = preload("res://engine/nucleo/Barra.gd")
+const Combate = preload("res://engine/nucleo/Combate.gd")
 const Formato = preload("res://engine/formato/Formato.gd")
 
 enum Estado { PARADO, ANDANDO, PULANDO, DEFENDENDO, ATACANDO, GOLPEADO, CAIDO, LEVANTANDO, ESQUIVANDO, KO, DECOLANDO, PARRY, GUARDA_QUEBRADA }
@@ -15,28 +16,28 @@ const NOMES_ESTADO := ["PARADO", "ANDANDO", "PULANDO", "DEFENDENDO", "ATACANDO",
 const DT: float = 1.0 / 60.0
 # Todos os pulos: 20% mais baixos e 20% mais curtos no ar. Com o mesmo impulso (v), gravidade x1,25:
 # altura = v^2 / (2g) cai 20% e tempo no ar = 2v / g também cai 20%.
-const GRAVIDADE: float = 2300.0 * 1.25
+const GRAVIDADE: float = Combate.GRAVIDADE
 
 # Velocidade inicial do pulo (px/s; negativo sobe). Sombra: 25% acima do normal.
-const VEL_NORMAL_ALTO: float = -1090.0
-const VEL_NORMAL_BAIXO: float = -800.0
-const VEL_SOMBRA_ALTO: float = -1360.0
-const VEL_SOMBRA_BAIXO: float = -1000.0
+const VEL_NORMAL_ALTO: float = Combate.VEL_NORMAL_ALTO
+const VEL_NORMAL_BAIXO: float = Combate.VEL_NORMAL_BAIXO
+const VEL_SOMBRA_ALTO: float = Combate.VEL_SOMBRA_ALTO
+const VEL_SOMBRA_BAIXO: float = Combate.VEL_SOMBRA_BAIXO
 # Frames de decolagem no chão antes de sair do chão.
-const DECOLAGEM_NORMAL: int = 4
-const DECOLAGEM_SOMBRA: int = 2
+const DECOLAGEM_NORMAL: int = Combate.DECOLAGEM_NORMAL
+const DECOLAGEM_SOMBRA: int = Combate.DECOLAGEM_SOMBRA
 
-const VEL_ANDAR: float = 400.0
-const CHAO_Y: float = 480.0
-const LIMITE_ESQ: float = 90.0
-const LIMITE_DIR: float = 870.0
+const VEL_ANDAR: float = Combate.VEL_ANDAR
+const CHAO_Y: float = Combate.CHAO_Y
+const LIMITE_ESQ: float = Combate.LIMITE_ESQ
+const LIMITE_DIR: float = Combate.LIMITE_DIR
 # Blow Off: o oponente é arremessado para longe (ARREMESSO_DISTANCIA). Se ele estiver na metade da tela
 # em direção à qual está sendo jogado (perto da parede), é arremessado contra a parede.
-const TELA_LARGURA: float = 960.0
-const ARREMESSO_FRAMES: int = 36
-const ARREMESSO_DISTANCIA: float = 280.0
-const IMPOSING_FRAMES: int = 90
-const STUN_FRAMES: int = 90
+const TELA_LARGURA: float = Combate.TELA_LARGURA
+const ARREMESSO_FRAMES: int = Combate.ARREMESSO_FRAMES
+const ARREMESSO_DISTANCIA: float = Combate.ARREMESSO_DISTANCIA
+const IMPOSING_FRAMES: int = Combate.IMPOSING_FRAMES
+const STUN_FRAMES: int = Combate.STUN_FRAMES
 # Comando padrão dos 4 pulos quando o arquivo não traz "input" (valores de fábrica da Forge).
 const PULOS_PADRAO := {
 	"normal": {"seq": [8], "botao": "", "janela": 20, "tol": 6},
@@ -48,48 +49,48 @@ const PULOS_PADRAO := {
 # Golpes antigos (personagem.json) guardam o dano numa escala de 1000; DANO_LEGADO converte para %.
 const VIDA_MAX: float = 100.0
 const DANO_LEGADO: float = 0.1
-const HITSTUN: int = 18
-const HITSTUN_BLOWBACK: int = 20
-const BLOQUEIO: int = 10
-const CAIDO_FRAMES: int = 36
-const CAIDO_BLOWOFF: int = 90
-const LEVANTAR_FRAMES: int = 18
+const HITSTUN: int = Combate.HITSTUN
+const HITSTUN_BLOWBACK: int = Combate.HITSTUN_BLOWBACK
+const BLOQUEIO: int = Combate.BLOQUEIO
+const CAIDO_FRAMES: int = Combate.CAIDO_FRAMES
+const CAIDO_BLOWOFF: int = Combate.CAIDO_BLOWOFF
+const LEVANTAR_FRAMES: int = Combate.LEVANTAR_FRAMES
 # Esquiva: distância fixa para todos (22 frames x 330 px/s = 121 px), sem custo.
 # Para frente atravessa o oponente; com o direcional para trás, rola para trás.
-const ESQUIVA_FRAMES: int = 22
-const ESQUIVA_VEL: float = 520.0
-const ESQUIVA_RECARGA: int = 20
-const CUSTO_LEVANTAR: float = 25.0
+const ESQUIVA_FRAMES: int = Combate.ESQUIVA_FRAMES
+const ESQUIVA_VEL: float = Combate.ESQUIVA_VEL
+const ESQUIVA_RECARGA: int = Combate.ESQUIVA_RECARGA
+const CUSTO_LEVANTAR: float = Combate.CUSTO_LEVANTAR
 
 # Just defense (parry): apertar para trás logo antes do golpe encostar.
 # Segurar para trás desde antes é defesa normal. Janela de 5 frames (~83 ms).
-const JANELA_PARRY: int = 5
+const JANELA_PARRY: int = Combate.JANELA_PARRY
 const PARRY_RECARGA: int = 24
-const PARRY_FRAMES: int = 14
-const PARRY_AVISO: int = 40
+const PARRY_FRAMES: int = Combate.PARRY_FRAMES
+const PARRY_AVISO: int = Combate.PARRY_AVISO
 
 # Barra de defesa: cada golpe defendido gasta uma parte. Chegou a zero, a guarda quebra.
-const GUARDA_MAX: float = 100.0
-const GUARDA_CUSTO := {1: 14.0, 2: 20.0, 3: 28.0}
-const GUARDA_QUEBRADA_FRAMES: int = 75
-const GUARDA_REGEN_ESPERA: int = 60
-const GUARDA_REGEN_POR_FRAME: float = 0.4
+const GUARDA_MAX: float = Combate.GUARDA_MAX
+const GUARDA_CUSTO := Combate.GUARDA_CUSTO
+const GUARDA_QUEBRADA_FRAMES: int = Combate.GUARDA_QUEBRADA_FRAMES
+const GUARDA_REGEN_ESPERA: int = Combate.GUARDA_REGEN_ESPERA
+const GUARDA_REGEN_POR_FRAME: float = Combate.GUARDA_REGEN_POR_FRAME
 
 # Golpes fortes (força 2 ou 3) causam 30% menos dano.
-const FORCA_FORTE: int = 2
+const FORCA_FORTE: int = Combate.FORCA_FORTE
 
 # Quick (QP, QK, QB): executa o golpe forte (HP, HK ou BO) na hora, sem a parte lenta
 # (startup). No controle: os dois socos = QP, os dois chutes = QK. Cada uso enche a barra PULSE. Ela esvazia sozinha (99 -> 0 em 5 s), mas só depois de
 # 2 s sem usar Quick. Cheia (100), entra em FLATLINE: o personagem pisca vermelho, perde a defesa
 # 15% mais rápido, anda mais devagar e não pode usar Quick até o Pulse zerar.
-const PULSE_POR_USO: float = 30.0
-const PULSE_ESPERA: int = 120
-const PULSE_DECAI_FRAME: float = 99.0 / 300.0
-const FLATLINE_VEL: float = 0.7
-const FLATLINE_GUARDA: float = 1.15
-const QUICK_JANELA_COMBO: int = 4
-const REDUCAO_DANO_FORTE: float = 0.30
-const CUSTO_GUARD_CANCEL: float = 50.0
+const PULSE_POR_USO: float = Combate.PULSE_POR_USO
+const PULSE_ESPERA: int = Combate.PULSE_ESPERA
+const PULSE_DECAI_FRAME: float = Combate.PULSE_DECAI_FRAME
+const FLATLINE_VEL: float = Combate.FLATLINE_VEL
+const FLATLINE_GUARDA: float = Combate.FLATLINE_GUARDA
+const QUICK_JANELA_COMBO: int = Combate.QUICK_JANELA_COMBO
+const REDUCAO_DANO_FORTE: float = Combate.REDUCAO_DANO_FORTE
+const CUSTO_GUARD_CANCEL: float = Combate.CUSTO_GUARD_CANCEL
 const CORPO_LARGURA: float = 50.0
 const CORPO_ALTURA: float = 120.0
 const ESCALA_MIN: float = 0.5
@@ -97,9 +98,9 @@ const ESCALA_MAX: float = 6.0
 # TAMANHO GERAL dos personagens do formato antigo (multiplica altura_px). Era 2.7; agora 2.0 (cerca de
 # 25% menor). Para personagens do .ember o tamanho é EmberForge.ALTURA_ALVO.
 const TAMANHO_GERAL: float = 2.0
-const JANELA_PULO_SOMBRA: int = 6
-const JANELA_COMBO: int = 50
-const DIRECAO_SALTO_MIN: float = 0.3
+const JANELA_PULO_SOMBRA: int = Combate.JANELA_PULO_SOMBRA
+const JANELA_COMBO: int = Combate.JANELA_COMBO
+const DIRECAO_SALTO_MIN: float = Combate.DIRECAO_SALTO_MIN
 
 var golpes: Array = []
 var barra = Barra.new()
@@ -136,8 +137,6 @@ var _som_idx: int = -1
 var _stun: bool = false
 var _imposing: bool = false
 var _wall: bool = false             # golpe com a prop wall: animação rebatido_parede
-var _wall_pousou: bool = false
-var _wall_pouso_t: int = 0
 var _ricochete: bool = false        # vai bater na parede e voltar
 var _ricochete_volta: bool = false  # já está voltando: animação rebatido
 var _wall_prox: float = 0.0         # 0 a 1: quão perto da parede estava (altura da volta do ricochete)
@@ -151,6 +150,12 @@ var _cur_forcar: bool = false       # sair do loop na hora (trocou de movimento 
 var _manter: String = ""            # movimento com fases que está tocando o recovery antes de sair
 var _pendente: Dictionary = {}      # golpe que espera o recovery do movimento (nao_quebra)
 var _pendente_t: int = 0
+var _correndo: bool = false         # correndo (comando [6,6] do arquivo), enquanto segura para frente
+var _roll_back: bool = false        # quick recovery: levantando com a animação roll_back
+var dano_sem_revide: float = 0.0    # % de vida perdida sem causar dano ao oponente (25% = stun)
+var _prox_visto: bool = false       # "proximo": o evento que o frame espera já aconteceu
+var _prox_espera: int = 0
+var _prox_total: int = 0
 var carga_tras_t: float = 0.0
 var carga_baixo_t: float = 0.0
 var frames_desde_baixo: int = 999
@@ -238,7 +243,7 @@ func nome_move() -> String:
 				return "defesa_neutra"
 			return "afk" if parado_t > 600 else "parado"
 		Estado.ANDANDO:
-			return "andando_frente"
+			return "correndo" if (_correndo and not _move_ok("correndo").is_empty()) else "andando_frente"
 		Estado.DEFENDENDO:
 			if agachado:
 				return "defesa_agachado" if defesa_aviso > 0 else "agachado"
@@ -270,7 +275,7 @@ func nome_move() -> String:
 				return "caindo_tras"
 			return "caindo_rolando" if reacao == "rasteira" else "caindo_frente"
 		Estado.LEVANTANDO:
-			return "levantando_frente"
+			return "roll_back" if _roll_back else "levantando_frente"
 		Estado.ESQUIVANDO:
 			return "backdash" if esquiva_dir * frente < 0.0 else "roll"
 		Estado.PARRY:
@@ -335,20 +340,6 @@ func quadro_forge() -> Dictionary:
 	var frames: Array = m["frames"]
 	if bool(m.get("dinamico", false)) and estado != Estado.ATACANDO:
 		return frames[clampi(_cur_i if nome == _anim_nome else 0, 0, frames.size() - 1)]
-	if _wall and nome == "rebatido_parede":
-		var seg: int = _frame_espera(frames, "parede")
-		if seg >= 0:
-			# Fica no frame "colisao/parede" até bater na parede; espera espera_ms e segue.
-			if not _wall_pousou:
-				return frames[seg]
-			var espera: int = int((frames[seg]["proximo"] as Dictionary).get("espera", 0))
-			var depois: int = maxi(_anim_t - _wall_pouso_t, 0)
-			if depois < espera:
-				return frames[seg]
-			var ini: int = 0
-			for k in range(seg + 1):
-				ini += int(frames[k]["ticks"])
-			return frames[_idx_cron(m, ini + depois - espera)]
 	var t: int = 0
 	if estado == Estado.ATACANDO:
 		t = tempo - 1
@@ -363,15 +354,6 @@ func quadro_forge() -> Dictionary:
 	else:
 		t = tempo
 	return frames[_idx_cron(m, t)]
-
-
-# Primeiro frame que espera colisão com a parede (animação rebatido_parede), ou -1.
-func _frame_espera(frames: Array, sub: String) -> int:
-	for k in range(frames.size()):
-		var p: Dictionary = frames[k].get("proximo", {})
-		if not p.is_empty() and str(p["se"]) == "colisao" and str(p["sub"]) == sub:
-			return k
-	return -1
 
 
 func _rects_forge(f: Dictionary, tipo: String, origem: Vector2 = Vector2.INF) -> Array:
@@ -569,7 +551,7 @@ func _escolher_golpe_arquivo(apertados: Dictionary, encadeando: bool = false) ->
 		var inp: Dictionary = d["input"]
 		if inp.is_empty() or (encadeando and not _tem_condicao_depois(d)):
 			continue
-		if not _condicoes_ok(d) or float(d["custo"]) > barra.valor or (bool(d["so_ar"]) and not no_chao):
+		if not _condicoes_ok(d) or Barra.custo_do_golpe(d) > barra.valor or (bool(d["so_ar"]) and not no_chao):
 			continue
 		if encadeando and _eh_golpe(golpe_atual, str(d.get("forge_move", ""))):
 			continue
@@ -611,6 +593,62 @@ func _executar_arquivo(sel: Dictionary, encadeado: bool = false) -> void:
 	eventos.append({"tipo": "quick", "golpe": {}})
 
 
+# Direção do analógico que ativa um movimento contínuo (andando_frente, andando_costas, agachado).
+# Vem do input do arquivo (um passo só); sem input, usa a padrão.
+func _dir_mov(nome: String, padrao: int) -> int:
+	var mv: Dictionary = (forge.get("moves", {}) as Dictionary).get(nome, {})
+	var seq: Array = (mv.get("input", {}) as Dictionary).get("seq", [])
+	return int(seq[0]) if seq.size() == 1 else padrao
+
+
+# O comando de um movimento (backdash, correndo) foi cumprido agora? Usa o input do arquivo ou o padrão.
+func _entrada_mov(nome: String, seq_padrao: Array) -> bool:
+	var mv: Dictionary = (forge.get("moves", {}) as Dictionary).get(nome, {})
+	var inp: Dictionary = mv.get("input", {})
+	if inp.is_empty():
+		inp = {"seq": seq_padrao, "botao": "", "janela": 20, "tol": 6}
+	return _casa_input(inp) >= 0
+
+
+# "Próximo sprite se...": o frame espera um evento (colisão, acertou, botão) e depois espera_ms.
+func _prox_reset() -> void:
+	_prox_visto = false
+	_prox_espera = 0
+	_prox_total = 0
+
+
+func _prox_pronto(f: Dictionary) -> bool:
+	var p: Dictionary = f.get("proximo", {})
+	if p.is_empty():
+		return true
+	_prox_total += 1
+	if _prox_total > Combate.PROXIMO_TIMEOUT:
+		return true
+	if not _prox_visto and _prox_ok(p):
+		_prox_visto = true
+	if not _prox_visto:
+		return false
+	_prox_espera += 1
+	return _prox_espera > int(p["espera"])
+
+
+func _prox_ok(p: Dictionary) -> bool:
+	var sub: String = str(p["sub"])
+	match str(p["se"]):
+		"colisao":
+			if sub == "parede":
+				return pos.x <= LIMITE_ESQ + 1.0 or pos.x >= LIMITE_DIR - 1.0
+			if sub == "chao":
+				return not no_chao
+			if sub == "oponente":
+				return oponente != null and absf(pos.x - oponente.pos.x) < (largura_corpo() + oponente.largura_corpo()) * 0.5
+		"acertou":
+			return golpe_acertou
+		"botao":
+			return bool(_bt_antes.get(sub, false))
+	return false
+
+
 # Qual dos 4 pulos do arquivo o comando atual pede ("" = nenhum).
 func _escolher_pulo() -> String:
 	var pulos: Dictionary = forge.get("pulos", {})
@@ -636,8 +674,7 @@ func _limpar_reacoes() -> void:
 	_stun = false
 	_imposing = false
 	_wall = false
-	_wall_pousou = false
-	_wall_pouso_t = 0
+	_roll_back = false
 	_ricochete = false
 	_ricochete_volta = false
 	_queda_tras = false
@@ -672,21 +709,23 @@ func _atualizar_anim() -> void:
 	else:
 		_anim_t += 1
 		_cur_passo()
-	if _wall_pousou and _wall_pouso_t == 0:
-		_wall_pouso_t = maxi(_anim_t, 1)
 	_sons_forge()
 
 
 # Um tick do cursor: ao acabar os ticks do frame, escolhe o próximo (trechos, vai_e_volta, parar_se).
 func _cur_passo() -> void:
 	var m: Dictionary = move_resolvido(_anim_nome)
-	if m.is_empty() or not bool(m.get("dinamico", false)) or _cur_fim:
+	if m.is_empty() or not bool(m.get("dinamico", false)) or _cur_fim or estado == Estado.ATACANDO:
 		return
 	var frames: Array = m["frames"]
 	_cur_i = clampi(_cur_i, 0, frames.size() - 1)
 	_cur_t += 1
 	if _cur_t < int(frames[_cur_i]["ticks"]):
 		return
+	if not _prox_pronto(frames[_cur_i]):
+		_cur_t = int(frames[_cur_i]["ticks"]) - 1   # segura neste frame até o evento acontecer
+		return
+	_prox_reset()
 	var trechos: Array = m["trechos"]
 	var k: int = Formato.trecho_de(trechos, _cur_i)
 	var parar: bool = k >= 0 and _parar_ok(trechos[k]["parar"])
@@ -848,6 +887,9 @@ func resetar(x: float, olhando_direita: bool) -> void:
 	_som_idx = -1
 	_manter = ""
 	_pendente = {}
+	_correndo = false
+	dano_sem_revide = 0.0
+	_prox_reset()
 	_limpar_reacoes()
 
 # ---------- Entrada e estados ----------
@@ -893,8 +935,11 @@ func atualizar(dir: Vector2, apertados: Dictionary) -> void:
 	_hist_bt.append(borda)
 	if _hist_bt.size() > 40:
 		_hist_bt.pop_front()
+	var dig: int = int(_hist[_hist.size() - 1])
 	if estado in [Estado.PARADO, Estado.ANDANDO, Estado.DEFENDENDO]:
-		agachado = baixo and not no_chao
+		# Com .ember v2 a direção que agacha vem do input de "agachado" (padrão: 2).
+		var agacha: bool = _casa_dir(dig, _dir_mov("agachado", 2)) if _modo_arquivo else baixo
+		agachado = agacha and not no_chao
 	elif estado != Estado.ATACANDO and estado != Estado.GOLPEADO:
 		agachado = false
 	carga_tras_t = carga_tras_t + DT if atras else 0.0
@@ -950,6 +995,11 @@ func _estado_livre(dir: Vector2, apertados: Dictionary, atras: bool, cima: bool)
 			if pulo != "":
 				_iniciar_decolagem(dir, pulo)
 				return
+		if not no_chao and esquiva_trava == 0 and _entrada_mov("backdash", [4, 4]):
+			_iniciar_esquiva(Vector2(-1.0 if direita else 1.0, 0.0))
+			return
+		if not no_chao and not _correndo and not _move_ok("correndo").is_empty() and _entrada_mov("correndo", [6, 6]):
+			_correndo = true
 	if apertados.get("ESQ", false) and not no_chao and esquiva_trava == 0:
 		_iniciar_esquiva(dir)
 		return
@@ -972,12 +1022,21 @@ func _estado_livre(dir: Vector2, apertados: Dictionary, atras: bool, cima: bool)
 	if cima and not pulos_arquivo:
 		_iniciar_decolagem(dir)
 		return
-	if atras:
+	var dig: int = int(_hist[_hist.size() - 1])
+	var costas: bool = atras
+	var frente_mov: bool = absf(dir.x) > 0.3 and not atras
+	if _modo_arquivo:
+		# Com .ember v2 as direções de andar vêm do input de andando_costas / andando_frente (6 e 4).
+		costas = _casa_dir(dig, _dir_mov("andando_costas", 4))
+		frente_mov = _casa_dir(dig, _dir_mov("andando_frente", 6))
+	if not frente_mov:
+		_correndo = false
+	if costas:
 		estado = Estado.DEFENDENDO
-		vel.x = dir.x * VEL_ANDAR * 0.5 * _mult_vel()
-	elif absf(dir.x) > 0.3:
+		vel.x = dir.x * VEL_ANDAR * Combate.VEL_ANDAR_COSTAS * _mult_vel()
+	elif frente_mov:
 		estado = Estado.ANDANDO
-		vel.x = dir.x * VEL_ANDAR * _mult_vel()
+		vel.x = dir.x * (Combate.VEL_CORRER if _correndo else VEL_ANDAR) * _mult_vel()
 	else:
 		estado = Estado.PARADO
 		vel.x = 0.0
@@ -991,7 +1050,7 @@ func _escolher_golpe(apertados: Dictionary) -> Dictionary:
 		var soco: bool = apertados.get("LP", false) or apertados.get("HP", false)
 		var chute: bool = apertados.get("LK", false) or apertados.get("HK", false)
 		if (cmd.ends_with("P") and soco) or (cmd.ends_with("K") and chute):
-			if _comando_ok(cmd) and _condicoes_ok(g) and float(g["custo"]) <= barra.valor and (not g["so_ar"] or no_chao):
+			if _comando_ok(cmd) and _condicoes_ok(g) and Barra.custo_do_golpe(g) <= barra.valor and (not g["so_ar"] or no_chao):
 				return g
 	for g in golpes:
 		var d: Dictionary = g
@@ -1007,13 +1066,14 @@ func _escolher_golpe(apertados: Dictionary) -> Dictionary:
 			continue
 		if d["so_ar"] and not no_chao:
 			continue
-		if float(d["custo"]) > barra.valor:
+		if Barra.custo_do_golpe(d) > barra.valor:
 			continue
 		return d
 	return {}
 
 
 func _executar(g: Dictionary, encadeado: bool = false) -> void:
+	_prox_reset()
 	if not encadeado:
 		_cadeia = 0
 	_mov_frames = 0
@@ -1021,7 +1081,7 @@ func _executar(g: Dictionary, encadeado: bool = false) -> void:
 	if str(g["carga"]) != "":
 		carga_tras_t = 0.0
 		carga_baixo_t = 0.0
-	var custo: float = float(g["custo"])
+	var custo: float = Barra.custo_do_golpe(g)
 	if custo > 0.0:
 		barra.gastar(custo)
 	golpe_atual = g.duplicate(true)
@@ -1039,6 +1099,16 @@ func _executar(g: Dictionary, encadeado: bool = false) -> void:
 
 
 func _processar_ataque(apertados: Dictionary) -> void:
+	if not forge.is_empty() and tempo > 0:
+		var ma: Dictionary = move_resolvido(nome_move())
+		if not ma.is_empty() and not (ma["cron"] as Array).is_empty():
+			var atual: int = _idx_cron(ma, tempo - 1)
+			if _idx_cron(ma, tempo) != atual:
+				var fa: Dictionary = ma["frames"][atual]
+				if not (fa.get("proximo", {}) as Dictionary).is_empty():
+					if not _prox_pronto(fa):
+						return   # o frame espera o evento (acertou, botão, colisão) antes de seguir
+					_prox_reset()
 	tempo += 1
 	if tempo > total_ataque:
 		_fim_do_golpe()
@@ -1172,7 +1242,7 @@ func _tentar_encadear(apertados: Dictionary) -> void:
 			continue
 		if bool(d["so_ar"]) and not no_chao:
 			continue
-		if float(d["custo"]) > barra.valor:
+		if Barra.custo_do_golpe(d) > barra.valor:
 			continue
 		_cadeia += 1
 		_executar(d, true)
@@ -1268,6 +1338,8 @@ func _processar_temporizado() -> void:
 	elif estado == Estado.GUARDA_QUEBRADA:
 		vel.x *= 0.85
 		guarda = GUARDA_MAX * float(tempo) / float(maxi(1, duracao))
+	elif estado == Estado.LEVANTANDO and _roll_back:
+		vel.x = _empurrao_base() * ESQUIVA_VEL * 0.5
 	else:
 		vel.x = 0.0
 	if tempo >= duracao:
@@ -1278,7 +1350,17 @@ func _processar_caido(apertados: Dictionary) -> void:
 	tempo += 1
 	if not arremessado:
 		vel.x *= 0.85
-	if caido_recuperavel and apertados.get("ESQ", false) and barra.valor >= CUSTO_LEVANTAR:
+	var esq_agora: bool = bool((_hist_bt[_hist_bt.size() - 1] as Dictionary).get("ESQ", false))
+	if _modo_arquivo and caido_recuperavel and esq_agora and CHAO_Y - pos.y <= Combate.ALTURA_CANELA:
+		# Quick recovery: ESQ quando o corpo está na altura da canela do chão ou abaixo: roll_back, sem custo.
+		_limpar_reacoes()
+		_roll_back = true
+		estado = Estado.LEVANTANDO
+		tempo = 0
+		duracao = Combate.ROLL_BACK_FRAMES
+		vel.x = _empurrao_base() * ESQUIVA_VEL * 0.5
+		return
+	if not _modo_arquivo and caido_recuperavel and apertados.get("ESQ", false) and barra.valor >= CUSTO_LEVANTAR:
 		barra.gastar(CUSTO_LEVANTAR)
 		_limpar_reacoes()
 		estado = Estado.LEVANTANDO
@@ -1309,6 +1391,7 @@ func _voltar_neutro() -> void:
 	golpe_atual = {}
 	_stun = false
 	_imposing = false
+	_roll_back = false
 
 
 # Janela de just defense: abre quando o "trás" é apertado de novo (soltou e apertou).
@@ -1448,6 +1531,7 @@ func receber_acerto(g: Dictionary, dano: float) -> void:
 	_pendente = {}
 	_manter = ""
 	vida = maxf(0.0, vida - dano)
+	dano_sem_revide += dano
 	golpe_atual = {}
 	bloqueado = false
 	tempo = 0
@@ -1495,7 +1579,9 @@ func receber_acerto(g: Dictionary, dano: float) -> void:
 		estado = Estado.GOLPEADO
 		duracao = HITSTUN
 		vel.x = _empurrao_base() * 60.0
-		if _tem_prop(g, "stun"):
+		if _tem_prop(g, "stun") or dano_sem_revide >= Combate.STUN_DANO_PCT:
+			# Stun: pela prop do golpe, ou por ter perdido 25% de vida sem causar nenhum dano.
+			dano_sem_revide = 0.0
 			_stun = true
 			duracao = STUN_FRAMES
 		elif not hit.is_empty():
@@ -1631,8 +1717,6 @@ func _aplicar_fisica() -> void:
 			if arremessado:
 				arremessado = false
 				vel.x = 0.0
-				if _wall:
-					_wall_pousou = true
 				if _ricochete:
 					_ricochete_para_oponente()
 			# Pouso: deslize horizontal do pulo ou do ataque aéreo para no chão.

@@ -9,6 +9,7 @@ const Personagem = preload("res://engine/nucleo/Personagem.gd")
 const Formato = preload("res://engine/formato/Formato.gd")
 const Eventos = preload("res://engine/sons/Eventos.gd")
 const EmberForge = preload("res://engine/formato/EmberForge.gd")
+const Combate = preload("res://engine/nucleo/Combate.gd")
 
 const FIXTURE := "res://testes/fixtures/boneco_teste/personagem.json"
 
@@ -28,6 +29,7 @@ func _init() -> void:
 	_testar_forge()
 	_testar_input_arquivo()
 	_testar_forge_v2()
+	_testar_ajustes_combate()
 	print("Resultado: %d ok, %d falha(s)" % [passou, falhas])
 	quit(1 if falhas > 0 else 0)
 
@@ -103,13 +105,13 @@ func _testar_caixa_barra() -> void:
 
 	var b = Barra.new()
 	_checar("barra começa sem estoque", b.estoques_disponiveis() == 0)
-	b.ganhar(100.0)
-	_checar("ganho sai 20% mais rápido (100 vira 120)", absf(float(b.valor) - 120.0) < 0.001)
-	_checar("120 já é 1 estoque", b.estoques_disponiveis() == 1)
+	b.ganhar(20.0)
+	_checar("ganho sai 20% mais rápido (20 vira 24)", absf(float(b.valor) - 24.0) < 0.001)
+	_checar("24 já é 1 estoque (20 cada)", b.estoques_disponiveis() == 1)
 	b.ganhar(1000.0)
-	_checar("barra enche em 500 (5 estoques)", absf(float(b.valor) - 500.0) < 0.001)
+	_checar("barra enche em 100 (5 estoques)", absf(float(b.valor) - 100.0) < 0.001)
 	_checar("5 estoques quando cheia", b.estoques_disponiveis() == 5)
-	_checar("gastar meia barra com barra cheia", b.gastar(Barra.MEIA_BARRA) and absf(float(b.valor) - 450.0) < 0.001)
+	_checar("gastar meia barra com barra cheia", b.gastar(Barra.MEIA_BARRA) and absf(float(b.valor) - 90.0) < 0.001)
 	_checar("gastar sem energia é recusado", not b.gastar(9999.0))
 
 func _testar_eventos() -> void:
@@ -558,3 +560,22 @@ func _testar_forge_v2() -> void:
 	_checar("parar_se termina a passada antes de sair (fim_do_ciclo)", Formato.proximo_frame(1, 4, tr2, e2, true) == 2 and Formato.proximo_frame(2, 4, tr2, e2, true) == 3)
 	tr2[0]["saida"] = "imediata"
 	_checar("saida imediata sai no fim do frame", Formato.proximo_frame(1, 4, tr2, {"pass": {}, "dir": {}}, true) == 3)
+
+
+func _testar_ajustes_combate() -> void:
+	print("Ajustes de combate, barra de 100 e stun por dano")
+	_checar("Combate.gd alimenta o Personagem", Personagem.HITSTUN == Combate.HITSTUN and Personagem.VEL_ANDAR == Combate.VEL_ANDAR)
+	_checar("barra de especial vale 100 (5 estoques de 20)", absf(Barra.new().maximo - 100.0) < 0.001 and absf(Barra.ESTOQUE * float(Barra.ESTOQUES_MAX) - 100.0) < 0.001)
+	_checar("custo antigo de 100 vira 20", absf(Barra.custo_do_golpe({"custo": 100}) - 20.0) < 0.001)
+	var golpe: Dictionary = Formato.padrao_golpe()
+	golpe["forca"] = 1
+	var a = Personagem.new()
+	var b = Personagem.new()
+	a.oponente = b
+	b.oponente = a
+	a.resetar(300.0, true)
+	b.resetar(400.0, false)
+	b.receber_acerto(golpe, 10.0)
+	_checar("dano pequeno não dá stun", b.estado == Personagem.Estado.GOLPEADO and b.nome_move() != "stun")
+	b.receber_acerto(golpe, 16.0)
+	_checar("25% de vida perdida sem revidar causa stun", b.nome_move() == "stun" and b.dano_sem_revide == 0.0)

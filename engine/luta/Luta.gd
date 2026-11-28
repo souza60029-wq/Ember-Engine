@@ -6,6 +6,7 @@ extends Node2D
 
 const Caixa = preload("res://engine/nucleo/Caixa.gd")
 const Personagem = preload("res://engine/nucleo/Personagem.gd")
+const Barra = preload("res://engine/nucleo/Barra.gd")
 const Formato = preload("res://engine/formato/Formato.gd")
 const Sprites = preload("res://engine/nucleo/Sprites.gd")
 
@@ -609,6 +610,8 @@ func _aplicar_acerto(atk, dfn, g: Dictionary, res: String) -> void:
 		dfn.receber_bloqueio(g)
 		return
 	atk.emitir_sons_golpe("acertar")
+	if Personagem.dano_do_golpe(g) > 0.0:
+		atk.dano_sem_revide = 0.0
 	var escala: float = maxf(0.5, 1.0 - 0.1 * float(atk.combo))
 	var dano: float = Personagem.dano_do_golpe(g) * escala
 	if dfn.armadura_ativa() and dfn.vida - dano > 0.0:
@@ -626,7 +629,7 @@ func _aplicar_acerto(atk, dfn, g: Dictionary, res: String) -> void:
 	atk.combo += 1
 	atk.janela_combo = Personagem.JANELA_COMBO
 	if str(g["carga"]) != "" and float(g["energia_ganha"]) > 0.0:
-		atk.barra.ganhar(float(g["energia_ganha"]))
+		atk.barra.ganhar(float(g["energia_ganha"]) * Barra.ESCALA_LEGADO)
 
 # Combo para de contar quando a janela do último acerto acaba.
 func _expirar_combos() -> void:
